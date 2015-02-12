@@ -59,6 +59,17 @@ extern "C" {
 #include <stdbool.h>
 #include "manual_control.h"
 
+typedef enum
+{
+	NAV_ON_GND,
+	NAV_TAKEOFF,
+	NAV_MANUAL_CTRL,
+	NAV_NAVIGATING,
+	NAV_LANDING,
+	NAV_LANDED,
+	NAV_CRITICAL_LANDING,
+}navigation_internal_state_t;
+
 /**
  * \brief The navigation structure
  */
@@ -81,8 +92,10 @@ typedef struct
 	
 	mav_mode_t mode;									///< The mode of the MAV to have a memory of its evolution
 	
-	bool auto_takeoff;									///< The flag to start and end the auto takeoff procedure
+	//bool auto_takeoff;									///< The flag to start and end the auto takeoff procedure
 	bool auto_landing;									///< The flag to start and end the auto landing procedure
+	
+	navigation_internal_state_t internal_state;		///< The internal state of the navigation module
 	
 	critical_behavior_enum critical_behavior;			///< The critical behavior enum
 	auto_landing_behavior_t auto_landing_behavior;		///< The autolanding behavior enum
@@ -155,6 +168,15 @@ void navigation_waypoint_hold_init(mavlink_waypoint_handler_t* waypoint_handler,
  * \return	Task result, currently only TASK_RUN_SUCCESS
  */
 task_return_t navigation_update(navigation_t* navigation);
+
+/**
+ * \brief	Returns the internal state of the navigation module
+ *
+ * \param	navigation		The pointer to the navigation structure in central_data
+ *
+ * \return	The internal state of the navigation module
+ */
+navigation_internal_state_t navigation_get_internal_state(const navigation_t* navigation);
 
 #ifdef __cplusplus
 }

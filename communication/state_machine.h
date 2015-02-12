@@ -54,6 +54,7 @@ extern "C" {
 #include "simulation.h"
 #include "manual_control.h"
 #include "imu.h"
+#include "navigation.h"
 
 /**
  * \brief Defines the state machine structure
@@ -67,9 +68,10 @@ typedef struct
 	mavlink_waypoint_handler_t* waypoint_handler;		///< Pointer to the mavlink waypoint handler structure
 	state_t* state;										///< Pointer to the state structure
 	simulation_model_t *sim_model;						///< Pointer to the simulation structure
-	remote_t* remote;									///< Pointer to the remote structure
+	remote_t* remote;										///< Pointer to the remote structure
 	manual_control_t* manual_control;					///< Pointer to the manual_control structure
 	const imu_t* imu;										///< Pointer to the IMU structure
+	const navigation_t* navigation;						///< Pointer to the navigation structure
 } state_machine_t;
 
 
@@ -81,6 +83,7 @@ typedef struct
  * \param sim_model					Pointer to the simulation structure
  * \param manual_control				Pointer to the manual_control structure
  * \param imu							Pointer to the IMU structure
+ * \param navigation					Pointer to the navigation structure
  *
  * \return	True if the init succeed, false otherwise
  */
@@ -89,7 +92,8 @@ bool state_machine_init(	state_machine_t *state_machine,
 							mavlink_waypoint_handler_t* waypoint_handler, 
 							simulation_model_t *sim_model, 
 							manual_control_t* manual_control,
-							const imu_t* imu);
+							const imu_t* imu,
+							const navigation_t* navigation);
 
 /**
  * \brief   Updates the state and mode of the UAV (not implemented yet)

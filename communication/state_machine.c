@@ -65,7 +65,8 @@ bool state_machine_init(	state_machine_t *state_machine,
 							mavlink_waypoint_handler_t* waypoint_handler, 
 							simulation_model_t *sim_model, 
 							manual_control_t* manual_control,
-							const imu_t* imu)
+							const imu_t* imu,
+							const navigation_t* navigation)
 {
 	bool init_success = true;
 	
@@ -74,6 +75,7 @@ bool state_machine_init(	state_machine_t *state_machine,
 	state_machine->sim_model 		= sim_model;
 	state_machine->manual_control 	= manual_control;
 	state_machine->imu 				= imu;
+	state_machine->navigation		= navigation;
 	
 	state_machine->channel_switches = 0;
 	state_machine->rc_check 		= 0;
@@ -177,6 +179,13 @@ void state_machine_update(state_machine_t* state_machine)
 					// If in another mode, stay in critical mode
 					// higher level navigation module will take care of coming back home
 				break;
+			}
+			if(navigation_get_internal_state(state_machine->navigation)==NAV_LANDED)
+			{
+				state_new = MAV_STATE_EMERGENCY;
+				state_machine->state->mav_mode_custom = CUSTOM_BASE_MODE;
+				state_machine->state->in_the_air = false;
+				mode_new.ARMED = ARMED_OFF;
 			}
 			break;
 		
