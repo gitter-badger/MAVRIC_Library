@@ -92,9 +92,9 @@ typedef struct
 typedef struct
 {
 	mode_source_t 			mode_source;		///< The source mode
-	control_source_t 		control_source;		///< Flag to tell whether the remote is active or not
+	control_source_t 			control_source;	///< Flag to tell whether the remote is active or not
 
-	remote_t	 			remote;				///< The pointer to the remote structure
+	remote_t	 				remote;			///< The pointer to the remote structure
 	joystick_t 				joystick;			///< The pointer to the joystick structure
 } manual_control_t;
 
