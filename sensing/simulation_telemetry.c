@@ -107,8 +107,6 @@ static mav_result_t simulation_telemetry_set_new_home_position(simulation_model_
 			sim->local_position.pos[Z] = 0.0f;
 		
 		}
-
-		*sim->nav_plan_active = false;
 	
 		result = MAV_RESULT_ACCEPTED;
 	}

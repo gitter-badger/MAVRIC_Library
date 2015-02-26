@@ -218,7 +218,6 @@ bool simulation_init(simulation_model_t* sim, const simulation_config_t* sim_con
 	sim->gps = gps;
 	sim->state = state;
 	sim->servos = servos;
-	sim->nav_plan_active = &state->nav_plan_active;
 	
 	// set initial conditions to a given attitude_filter
 	sim->estimated_attitude = ahrs;
