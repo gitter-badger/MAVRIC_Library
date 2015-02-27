@@ -317,7 +317,7 @@ bool position_estimation_init(position_estimation_t* pos_est, const position_est
 	pos_est->local_position.pos[Z] = 0;
 	
     // reset position estimator
-    pos_est->last_alt = 0;
+    pos_est->last_alt = 0.0f;
     for(int32_t i = 0;i < 3;i++)
     {
         pos_est->last_vel[i] = 0.0f;
