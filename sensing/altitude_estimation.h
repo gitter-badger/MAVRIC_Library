@@ -66,9 +66,7 @@ extern "C" {
  * \brief Altitude estimator structure
  */
 typedef struct 
-{
-	altitude_t 		altitude_estimated; 			///< Pointer to estimated altitude (output)	
-	
+{	
 	uint32_t time_last_gps_msg;						///< The time at which we received the last GPS message in ms
 	uint32_t time_last_barometer_msg;				///< The time at which we received the last barometer message in ms
 	uint32_t time_last_sonar_msg;					///< The time at which we received the last sonar message in ms
@@ -84,6 +82,7 @@ typedef struct
 	const gps_t*			gps;	
 	
 	const imu_t*			imu;
+	altitude_t* 		altitude_estimated; 			///< Pointer to estimated altitude (output)
 } altitude_estimation_t;
 
 
@@ -102,7 +101,7 @@ typedef struct
  * \param 	estimator    		Pointer to data structure
  * \param 	config				Pointer to configuration
  */
-bool altitude_estimation_init(altitude_estimation_t* estimator, const altitude_estimation_conf_t* config, const sonar_t* sonar, const barometer_t* barometer, const ahrs_t* ahrs, const gps_t* gps, const imu_t* imu);
+bool altitude_estimation_init(altitude_estimation_t* estimator, const altitude_estimation_conf_t* config, altitude_t* altitude_estimated, const sonar_t* sonar, const barometer_t* barometer, const ahrs_t* ahrs, const gps_t* gps, const imu_t* imu);
 
 
 /**
@@ -119,11 +118,7 @@ void altitude_estimation_update(altitude_estimation_t* estimator);
  * \param	altitude_estimation		The pointer to the structure of the track following
  */
 
-void altitude_estimation_send_dist(const altitude_t* estimator, const mavlink_stream_t* mavlink_stream, mavlink_message_t* msg);
-
-void ahrs_send_dist(const ahrs_t* estimator, const mavlink_stream_t* mavlink_stream, mavlink_message_t* msg);
-
-void baro_send_dist(const barometer_t* estimator, const mavlink_stream_t* mavlink_stream, mavlink_message_t* msg);
+void altitude_estimation_send_estimation(const altitude_estimation_t* alt_estimation, const mavlink_stream_t* mavlink_stream, mavlink_message_t* msg);
 
 #ifdef __cplusplus
 }

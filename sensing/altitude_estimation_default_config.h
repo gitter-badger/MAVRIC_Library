@@ -40,18 +40,17 @@
  ******************************************************************************/
 
 
-#ifndef AHRS_DEFAULT_CONFIG_H_
-#define AHRS_DEFAULT_CONFIG_H_
+#ifndef ALTITUDE_ESTIMATION_DEFAULT_CONFIG_H_
+#define ALTITUDE_ESTIMATION_DEFAULT_CONFIG_H_
 
 #ifdef __cplusplus
 	extern "C" {
 #endif
 
-#include altitude_estimation.h
+#include "altitude_estimation.h"
 
 
-
-altitude_estimation_conf_t altitude_estimation_default_conf = 
+static const altitude_estimation_conf_t altitude_estimation_default_config = 
 {
 
 	//Matrix F
@@ -148,4 +147,10 @@ altitude_estimation_conf_t altitude_estimation_default_conf =
 	.kalman_filter.covariance.v[3][1] = 0.0f,
 	.kalman_filter.covariance.v[3][2] = 0.0f,
 	.kalman_filter.covariance.v[3][3] = 10.0f
+};
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif /* ALTITUDE_ESTIMATION_DEFAULT_CONFIG_H_ */

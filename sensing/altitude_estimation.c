@@ -89,7 +89,7 @@ static void gps_position_init(altitude_estimation_t* estimator)
 // PUBLIC FUNCTIONS IMPLEMENTATION
 //------------------------------------------------------------------------------
 
-bool altitude_estimation_init(altitude_estimation_t* estimator, const altitude_estimation_conf_t* config, const sonar_t* sonar, const barometer_t* barometer, const ahrs_t* ahrs, const gps_t* gps, const imu_t* imu)
+bool altitude_estimation_init(altitude_estimation_t* estimator, const altitude_estimation_conf_t* config,  altitude_t* altitude_estimated, const sonar_t* sonar, const barometer_t* barometer, const ahrs_t* ahrs, const gps_t* gps, const imu_t* imu)
 {
 	bool init_success = true;
 	
@@ -100,6 +100,8 @@ bool altitude_estimation_init(altitude_estimation_t* estimator, const altitude_e
 	estimator->gps				= gps;
 	
 	estimator->imu				= imu;
+	
+	estimator->altitude_estimated = altitude_estimated;
 	
 	estimator->time_last_gps_msg = time_keeper_get_millis();
 	estimator->time_last_barometer_msg = time_keeper_get_millis();
@@ -239,7 +241,7 @@ bool altitude_estimation_init(altitude_estimation_t* estimator, const altitude_e
 	estimator->kalman_filter.state.v[0] = 400.0f; // TODO: change to config
 	estimator->kalman_filter.state.v[1] = 0.0f;
 	estimator->kalman_filter.state.v[2] = 0.0f;
-	estimator->kalman_filter.state.v[3] = estimator->imu->calib_accelero.bias[Z];
+	estimator->kalman_filter.state.v[3] = 0.0f;
 	
 	//Mesures capteurs
 	estimator->measurement.v[0] = 0.0f;
@@ -269,7 +271,7 @@ void altitude_estimation_update(altitude_estimation_t* estimator)
 	kalman_4D_prediction(&(estimator->kalman_filter), acc_global);
 	
 	// sonar correction
-	if( estimator->time_last_sonar_msg < estimator->sonar->last_update)
+	if( (estimator->time_last_sonar_msg < estimator->sonar->last_update)&&(estimator->sonar->healthy) )
 	{
 		estimator->time_last_sonar_msg = estimator->sonar->last_update;
 		
@@ -313,41 +315,91 @@ void altitude_estimation_update(altitude_estimation_t* estimator)
 	
 	//kalman_4D_update(&(estimator->kalman_filter), estimator->measurement);
 	
-	estimator->altitude_estimated.above_sea 	= estimator->kalman_filter.state.v[0];
-	estimator->altitude_estimated.above_ground = estimator->kalman_filter.state.v[1];
+	estimator->altitude_estimated->above_sea 	= estimator->kalman_filter.state.v[0];
+	estimator->altitude_estimated->above_ground = estimator->kalman_filter.state.v[1];
 
 }
 
 /// Mavlink communication ///
 
-void altitude_estimation_send_dist(const altitude_t* estimator, const mavlink_stream_t* mavlink_stream, mavlink_message_t* msg)
-
-{
-
-	mavlink_msg_named_value_float_pack(	mavlink_stream->sysid,
-										mavlink_stream->compid,
-										msg,
-										time_keeper_get_millis(),
-										"altestimated",
-										-100*estimator->above_ground );
-}
-
-void ahrs_send_dist(const ahrs_t* estimator, const mavlink_stream_t* mavlink_stream, mavlink_message_t* msg)
+void altitude_estimation_send_estimation(const altitude_estimation_t* alt_estimation, const mavlink_stream_t* mavlink_stream, mavlink_message_t* msg)
 {
 	mavlink_msg_named_value_float_pack(	mavlink_stream->sysid,
 										mavlink_stream->compid,
 										msg,
 										time_keeper_get_millis(),
-										"ahrsZ",
-										estimator->linear_acc[2] );
-}
-
-void baro_send_dist(const barometer_t* estimator, const mavlink_stream_t* mavlink_stream, mavlink_message_t* msg)
-{
+										"sonar",
+										alt_estimation->measurement.v[0]);
+	mavlink_stream_send(mavlink_stream, msg);
+	
 	mavlink_msg_named_value_float_pack(	mavlink_stream->sysid,
 										mavlink_stream->compid,
 										msg,
 										time_keeper_get_millis(),
-										"baroAlt",
-										estimator->altitude );
+										"baro",
+										alt_estimation->measurement.v[1] );
+	mavlink_stream_send(mavlink_stream, msg);
+	
+	mavlink_msg_named_value_float_pack(	mavlink_stream->sysid,
+										mavlink_stream->compid,
+										msg,
+										time_keeper_get_millis(),
+										"gpsPos",
+										alt_estimation->measurement.v[2] );
+	mavlink_stream_send(mavlink_stream, msg);
+	
+	mavlink_msg_named_value_float_pack(	mavlink_stream->sysid,
+										mavlink_stream->compid,
+										msg,
+										time_keeper_get_millis(),
+										"gpsVel",
+										alt_estimation->measurement.v[3] );
+	mavlink_stream_send(mavlink_stream, msg);
+	
+	mavlink_msg_named_value_float_pack(	mavlink_stream->sysid,
+										mavlink_stream->compid,
+										msg,
+										time_keeper_get_millis(),
+										"height",
+										alt_estimation->altitude_estimated->above_ground );
+	mavlink_stream_send(mavlink_stream, msg);
+	
+	mavlink_msg_named_value_float_pack(	mavlink_stream->sysid,
+										mavlink_stream->compid,
+										msg,
+										time_keeper_get_millis(),
+										"altest",
+										alt_estimation->altitude_estimated->above_sea );
+	mavlink_stream_send(mavlink_stream, msg);
+	
+	mavlink_msg_named_value_float_pack(	mavlink_stream->sysid,
+										mavlink_stream->compid,
+										msg,
+										time_keeper_get_millis(),
+										"coVar0",
+										alt_estimation->kalman_filter.covariance.v[0][0] );
+	mavlink_stream_send(mavlink_stream, msg);
+	
+	mavlink_msg_named_value_float_pack(	mavlink_stream->sysid,
+										mavlink_stream->compid,
+										msg,
+										time_keeper_get_millis(),
+										"coVar1",
+										alt_estimation->kalman_filter.covariance.v[1][1] );
+	mavlink_stream_send(mavlink_stream, msg);
+	
+	mavlink_msg_named_value_float_pack(	mavlink_stream->sysid,
+										mavlink_stream->compid,
+										msg,
+										time_keeper_get_millis(),
+										"coVar2",
+										alt_estimation->kalman_filter.covariance.v[2][2] );
+	mavlink_stream_send(mavlink_stream, msg);
+	
+	mavlink_msg_named_value_float_pack(	mavlink_stream->sysid,
+										mavlink_stream->compid,
+										msg,
+										time_keeper_get_millis(),
+										"coVar3",
+										alt_estimation->kalman_filter.covariance.v[3][3] );
 }
