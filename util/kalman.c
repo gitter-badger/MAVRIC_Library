@@ -42,6 +42,65 @@
 
 #include "kalman.h"
 
+void kalman_4D_prediction(kalman_filter_4D_t *kalman, float control)
+{
+	kalman->state =     vadd4( 	mvmul4(kalman->system_model, kalman->state), 
+								svmul4(control, kalman->control_model));
+
+	kalman->covariance = madd4(  mmul4( 	mmul4(	kalman->system_model, 
+												kalman->covariance), 
+										trans4(kalman->system_model)), 
+								kalman->noise_prediction);
+}
+
+void kalman_4D_update(kalman_filter_4D_t *kalman, vector_4_t measurement)
+{
+	vector_4_t innovation = vsub4(	measurement, 
+									mvmul4(kalman->observation_model, kalman->state));
+	
+	matrix_4x4_t innovation_covariance = madd4(	mmul4( 	mmul4(kalman->observation_model, kalman->covariance),
+											   			trans4(kalman->observation_model)), 
+											  	kalman->noise_measurement);
+	
+	matrix_4x4_t kalman_gain = mmul4(	mmul4(kalman->covariance, trans4(kalman->observation_model)), 
+										inv4(innovation_covariance));
+	
+	kalman->state = vadd4(kalman->state, mvmul4(kalman_gain, innovation));
+
+	kalman->covariance = mmul4(	msub4(ident_4x4, mmul4(kalman_gain, kalman->observation_model)), 
+								kalman->covariance);
+}
+
+void kalman_4D_per_component_update(kalman_filter_4D_t *kalman, vector_4_t measurement, uint8_t m_index, uint8_t s_index)
+{
+	uint8_t i;
+	
+	vector_4_t kalman_gain;
+	
+	matrix_4x4_t KH = 
+		{.v={{0.0f, 0.0f, 0.0f, 0.0f}, 
+        {0.0f, 0.0f, 0.0f, 0.0f}, 
+        {0.0f, 0.0f, 0.0f, 0.0f}, 
+        {0.0f, 0.0f, 0.0f, 0.0f}} };
+	
+	float innovation = measurement.v[m_index] - kalman->state.v[s_index];
+		
+	float innovation_covariance = kalman->covariance.v[s_index][s_index] + kalman->noise_measurement.v[m_index][m_index];
+	
+	for( i=0; i<4; i++ )
+	{
+		kalman_gain.v[i] = kalman->covariance.v[i][s_index]/innovation_covariance;
+	}
+	
+	kalman->state = vadd4(kalman->state, svmul4(innovation,kalman_gain));
+	
+	for( i=0; i<4; i++)
+	{
+		KH.v[i][s_index] = kalman_gain.v[i];
+	}
+	
+	kalman->covariance = mmul4(	msub4(ident_4x4, KH), kalman->covariance);
+}
 
 void kalman_2D_prediction(kalman_filter_2D_t *kalman, vector_2_t control) 
 {

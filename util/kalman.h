@@ -49,13 +49,12 @@ extern "C"
 {
 #endif
 
-
 #include "small_matrix.h"
 #include "linear_algebra.h"
 
 
 /**
- * @brief Kalman filter 
+ * @brief 2D Kalman filter 
  */
 typedef struct kalman_filter_2D_t 
 {
@@ -66,8 +65,28 @@ typedef struct kalman_filter_2D_t
 	matrix_2x2_t noise_measurement;		///<	Measurement noise  matrix
 	matrix_2x2_t covariance;			///<	Covariance matrix
 	vector_2_t   state;					///<	State vector
+	float        dt;                    ///<    Time step between each update
 } kalman_filter_2D_t;
 
+/**
+ * @brief 4D Kalman filter 
+ */
+typedef struct kalman_filter_4D_t 
+{
+	matrix_4x4_t system_model;			///<	Model matrix
+	vector_4_t control_model;			///<	Control matrix
+	matrix_4x4_t observation_model;		///<	Observation matrix
+	matrix_4x4_t noise_prediction;		///<	Model noise matrix
+	matrix_4x4_t noise_measurement;		///<	Measurement noise  matrix
+	matrix_4x4_t covariance;			///<	Covariance matrix
+	vector_4_t   state;					///<	State vector
+	float        dt;                    ///<    Time step between each update
+} kalman_filter_4D_t;
+
+void kalman_4D_prediction(kalman_filter_4D_t *kalman, float control);
+void kalman_4D_update(kalman_filter_4D_t *kalman, vector_4_t measurement);
+
+void kalman_4D_per_component_update(kalman_filter_4D_t *kalman, vector_4_t measurement, uint8_t m_index, uint8_t s_index);
 
 /**
  * \brief 	Kalman prediction step
