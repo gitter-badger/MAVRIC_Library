@@ -103,7 +103,7 @@ typedef struct
  * 
  * \return 		Unit quaternion
  */
-quat_t static inline quaternions_create_from_vector(float v[3])
+quat_t static inline quaternions_create_from_vector(const float v[3])
 {
 	quat_t q;	
 	q.s = 0; 
