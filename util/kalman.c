@@ -130,7 +130,7 @@ void kalman_5D_prediction(kalman_filter_5D_t *kalman, float control)
 								kalman->noise_prediction);
 }
 
-void kalman_5D_per_component_update(kalman_filter_5D_t *kalman, vector_5_t measurement, uint8_t m_index, uint8_t x_index)
+void kalman_5D_per_component_update(kalman_filter_5D_t *kalman, vector_4_t measurement, uint8_t m_index, uint8_t x_index)
 {
 	uint8_t dim = 5;
 	uint8_t i, j;
@@ -153,7 +153,7 @@ void kalman_5D_per_component_update(kalman_filter_5D_t *kalman, vector_5_t measu
 	float innovation = measurement.v[m_index] - Hx;
 	
 	vector_5_t PHt;
-	PHt = mvmul5(kalman->covariance,col5(trans4(kalman->observation_model),m_index));
+	PHt = mvmul5(kalman->covariance,col5(trans5(kalman->observation_model),m_index));
 
 	float HPHt = 0.0f;
 	for ( i=0; i<dim; i++)
@@ -163,15 +163,9 @@ void kalman_5D_per_component_update(kalman_filter_5D_t *kalman, vector_5_t measu
 
 	float innovation_covariance_inverse = 1.0f / (HPHt + kalman->noise_measurement.v[m_index][m_index]);
 	
-	float PHt = 0.0f;
 	for( i=0; i<dim; i++ )
 	{
-		PHt = 0.0f;
-		for ( j=0; j<dim; j++ )
-		{
-			PHt += kalman->covariance.v[i][j]*kalman->observation_model.v[m_index][j];
-		}
-		kalman_gain.v[i] = PHt * innovation_covariance_inverse;
+		kalman_gain.v[i] = PHt.v[i] * innovation_covariance_inverse;
 	}
 	
 	kalman->state = vadd5(kalman->state, svmul5(innovation,kalman_gain));
@@ -183,7 +177,7 @@ void kalman_5D_per_component_update(kalman_filter_5D_t *kalman, vector_5_t measu
 			KH.v[i][j] = kalman_gain.v[i]*kalman->observation_model.v[m_index][j];
 		}
 	}
-	kalman->covariance = mmul5(	msub4(ident_5x5, KH), kalman->covariance);
+	kalman->covariance = mmul5(	msub5(ident_5x5, KH), kalman->covariance);
 }
 
 void kalman_2D_prediction(kalman_filter_2D_t *kalman, vector_2_t control) 

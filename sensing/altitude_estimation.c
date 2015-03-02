@@ -278,7 +278,7 @@ void altitude_estimation_send_estimation(const altitude_estimation_t* alt_estima
 										msg,
 										time_keeper_get_millis(),
 										"accBiaisest",
-										alt_estimation->state.v[3] );
+										alt_estimation->kalman_filter.state.v[3] );
 	mavlink_stream_send(mavlink_stream, msg);
 
 	mavlink_msg_named_value_float_pack(	mavlink_stream->sysid,
@@ -286,7 +286,7 @@ void altitude_estimation_send_estimation(const altitude_estimation_t* alt_estima
 										msg,
 										time_keeper_get_millis(),
 										"baroBiaisest",
-										alt_estimation->state.v[4] );
+										alt_estimation->kalman_filter.state.v[4] );
 	mavlink_stream_send(mavlink_stream, msg);
 
 	mavlink_msg_named_value_float_pack(	mavlink_stream->sysid,
