@@ -54,6 +54,7 @@ typedef struct
 {
 	float above_ground;		///< Altitude above ground (<0)
 	float above_sea;		///< Altitude above sea level (<0)
+	float vertical_vel;		///< Vertical velocity in m/s
 } altitude_t;
 
 
