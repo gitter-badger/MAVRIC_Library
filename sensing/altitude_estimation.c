@@ -89,6 +89,8 @@ bool altitude_estimation_init(altitude_estimation_t* estimator, const altitude_e
 {
 	bool init_success = true;
 	
+	uint8_t dim;
+
 	// Init dependencies
 	estimator->sonar 				= sonar;
 	estimator->barometer 			= barometer;
@@ -112,11 +114,11 @@ bool altitude_estimation_init(altitude_estimation_t* estimator, const altitude_e
 	
 	uint8_t i,j;
 	//Matrix F
-	for( i=0; i<4; i++ )
+	for( i=0; i<dim; i++ )
 	{
 		estimator->kalman_filter.control_model.v[i] = config->kalman_filter.control_model.v[i];
 		
-		for( j=0; j<4; j++)
+		for( j=0; j<dim; j++)
 		{
 			estimator->kalman_filter.system_model.v[i][j] = config->kalman_filter.system_model.v[i][j];
 			
@@ -135,6 +137,7 @@ bool altitude_estimation_init(altitude_estimation_t* estimator, const altitude_e
 	estimator->kalman_filter.state.v[1] = 0.0f;
 	estimator->kalman_filter.state.v[2] = 0.0f;
 	estimator->kalman_filter.state.v[3] = 0.0f;
+	estimator->kalman_filter.state.v[4] = 0.0f;
 	
 	//Mesures capteurs
 	estimator->measurement.v[0] = 0.0f;
@@ -153,11 +156,11 @@ bool altitude_estimation_init(altitude_estimation_t* estimator, const altitude_e
 void altitude_estimation_update(altitude_estimation_t* estimator)
 {
 	float acc_global[3];
-	kalman_filter_4D_t* kalman = &estimator->kalman_filter;
+	kalman_filter_5D_t* kalman = &estimator->kalman_filter;
 	
 	quaternions_rotate_vector(estimator->ahrs->qe, estimator->ahrs->linear_acc,acc_global);
 	
-	kalman_4D_prediction(&(estimator->kalman_filter), acc_global[2]);
+	kalman_5D_prediction(&(estimator->kalman_filter), acc_global[2]);
 	
 	// sonar correction
 	if( (estimator->time_last_sonar_msg < estimator->sonar->last_update)&&(estimator->sonar->healthy) )
@@ -166,7 +169,7 @@ void altitude_estimation_update(altitude_estimation_t* estimator)
 		
 		estimator->measurement.v[0] = estimator->sonar->current_distance;
 		
-		kalman_4D_per_component_update(kalman,estimator->measurement,0,1);
+		kalman_5D_per_component_update(kalman,estimator->measurement,0,1);
 	}
 	
 	// barometer correction
@@ -176,7 +179,7 @@ void altitude_estimation_update(altitude_estimation_t* estimator)
 		
 		estimator->measurement.v[1] = estimator->barometer->altitude;
 		
-		kalman_4D_per_component_update(kalman,estimator->measurement,1,0);
+		kalman_5D_per_component_update(kalman,estimator->measurement,1,0);
 	}
 	
 	// gps correction
@@ -188,11 +191,11 @@ void altitude_estimation_update(altitude_estimation_t* estimator)
 
 			estimator->measurement.v[2] = estimator->gps->altitude;
 			
-			kalman_4D_per_component_update(kalman,estimator->measurement,2,0);
+			kalman_5D_per_component_update(kalman,estimator->measurement,2,0);
 			
 			estimator->measurement.v[3] = -estimator->gps->vertical_speed;
 			
-			kalman_4D_per_component_update(kalman,estimator->measurement,3,2);
+			kalman_5D_per_component_update(kalman,estimator->measurement,3,2);
 		}
 	}
 	else
@@ -274,6 +277,22 @@ void altitude_estimation_send_estimation(const altitude_estimation_t* alt_estima
 										mavlink_stream->compid,
 										msg,
 										time_keeper_get_millis(),
+										"accBiaisest",
+										alt_estimation->state.v[3] );
+	mavlink_stream_send(mavlink_stream, msg);
+
+	mavlink_msg_named_value_float_pack(	mavlink_stream->sysid,
+										mavlink_stream->compid,
+										msg,
+										time_keeper_get_millis(),
+										"baroBiaisest",
+										alt_estimation->state.v[4] );
+	mavlink_stream_send(mavlink_stream, msg);
+
+	mavlink_msg_named_value_float_pack(	mavlink_stream->sysid,
+										mavlink_stream->compid,
+										msg,
+										time_keeper_get_millis(),
 										"coVar0",
 										alt_estimation->kalman_filter.covariance.v[0][0] );
 	mavlink_stream_send(mavlink_stream, msg);
@@ -300,4 +319,12 @@ void altitude_estimation_send_estimation(const altitude_estimation_t* alt_estima
 										time_keeper_get_millis(),
 										"coVar3",
 										alt_estimation->kalman_filter.covariance.v[3][3] );
+	mavlink_stream_send(mavlink_stream, msg);
+	mavlink_msg_named_value_float_pack(	mavlink_stream->sysid,
+										mavlink_stream->compid,
+										msg,
+										time_keeper_get_millis(),
+										"coVar4",
+										alt_estimation->kalman_filter.covariance.v[4][4] );
+	mavlink_stream_send(mavlink_stream, msg);
 }

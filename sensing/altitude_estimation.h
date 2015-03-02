@@ -73,7 +73,7 @@ typedef struct
 	bool init_gps_position;							///< The boolean flag ensuring that the GPS was initialized
 	
 	//Filtre Kalman
-	kalman_filter_4D_t  kalman_filter;     	    ///< Kalman structure
+	kalman_filter_5D_t  kalman_filter;     	    ///< Kalman structure
 	vector_4_t          measurement;				///< Mesures des capteurs
 	
 	const sonar_t*		sonar;						///< Pointer to sonar (input)
@@ -91,7 +91,7 @@ typedef struct
  */
 typedef struct
 {
-	kalman_filter_4D_t kalman_filter;
+	kalman_filter_5D_t kalman_filter;
 } altitude_estimation_conf_t;	
 
 
