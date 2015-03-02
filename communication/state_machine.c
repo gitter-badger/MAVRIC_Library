@@ -90,6 +90,7 @@ bool state_machine_init(	state_machine_t *state_machine,
 void state_machine_update(state_machine_t* state_machine)
 {
 	mav_mode_t mode_current, mode_new;
+	mav_mode_custom_t mode_custom_current; mode_custom_new;
 	mav_state_t state_current, state_new;
 	signal_quality_t rc_check;
 	
@@ -101,6 +102,10 @@ void state_machine_update(state_machine_t* state_machine)
 
 	// Get current mode
 	mode_current = state_machine->state->mav_mode;
+
+	// Get current custom mode
+	mode_custom_current = state_machine->state->mav_mode_custom;
+	mode_custom_new = mode_custom_current;
 
 	// Get remote signal strength
 	rc_check = manual_control_get_signal_strength(state_machine->manual_control);
@@ -125,12 +130,13 @@ void state_machine_update(state_machine_t* state_machine)
 			}
 			break;
 		case MAV_STATE_STANDBY:
+
 			if(imu_get_internal_state(state_machine->imu) == CALIBRATING)
 			{
 				state_new = MAV_STATE_CALIBRATING;
 				break;
 			}
-			
+
 			state_machine->state->in_the_air = false;
 			
 			if ( mode_new.ARMED == ARMED_ON )
@@ -156,9 +162,18 @@ void state_machine_update(state_machine_t* state_machine)
 					}
 				}
 			}
+			if (navigation_get_internal_state(state_machine->navigation)==NAV_LANDED)
+			{
+				mode_custom_new = CUSTOM_BASE_MODE;
+				state_machine->state->in_the_air = false;
+				mode_new = ARMED_OFF;
+				state_new = MAV_STATE_STANDBY;				
+			}
+			
+
 			break;
 
-		case MAV_STATE_CRITICAL:			
+		case MAV_STATE_CRITICAL:
 			switch ( rc_check )
 			{
 				case SIGNAL_GOOD:
@@ -183,10 +198,11 @@ void state_machine_update(state_machine_t* state_machine)
 			if(navigation_get_internal_state(state_machine->navigation)==NAV_LANDED)
 			{
 				state_new = MAV_STATE_EMERGENCY;
-				state_machine->state->mav_mode_custom = CUSTOM_BASE_MODE;
+				mode_custom_new = CUSTOM_BASE_MODE;
 				state_machine->state->in_the_air = false;
 				mode_new.ARMED = ARMED_OFF;
 			}
+			
 			break;
 		
 		case MAV_STATE_EMERGENCY:
@@ -256,5 +272,6 @@ void state_machine_update(state_machine_t* state_machine)
 	// Finally, write new modes and states
 	state_machine->state->mav_mode = mode_new;
 	state_machine->state->mav_state = state_new;
+	state_machine->state->mav_mode_custom = mode_custom_new;
 
 }
