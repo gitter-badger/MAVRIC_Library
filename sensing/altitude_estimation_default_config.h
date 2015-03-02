@@ -80,19 +80,22 @@ static const altitude_estimation_conf_t altitude_estimation_default_config =
 	//Matrix H
 	.kalman_filter.observation_model.v[0][0] = 0.0f,
 	.kalman_filter.observation_model.v[0][1] = 1.0f,
-	.kalman_filter.observation_model.v[0][2] = 1.0f,
+	.kalman_filter.observation_model.v[0][2] = 0.0f,
 	.kalman_filter.observation_model.v[0][3] = 0.0f,
+
 	.kalman_filter.observation_model.v[1][0] = 1.0f,
 	.kalman_filter.observation_model.v[1][1] = 0.0f,
 	.kalman_filter.observation_model.v[1][2] = 0.0f,
 	.kalman_filter.observation_model.v[1][3] = 0.0f,
-	.kalman_filter.observation_model.v[2][0] = 0.0f,
+
+	.kalman_filter.observation_model.v[2][0] = 1.0f,
 	.kalman_filter.observation_model.v[2][1] = 0.0f,
-	.kalman_filter.observation_model.v[2][2] = 1.0f,
+	.kalman_filter.observation_model.v[2][2] = 0.0f,
 	.kalman_filter.observation_model.v[2][3] = 0.0f,
+
 	.kalman_filter.observation_model.v[3][0] = 0.0f,
 	.kalman_filter.observation_model.v[3][1] = 0.0f,
-	.kalman_filter.observation_model.v[3][2] = 0.0f,
+	.kalman_filter.observation_model.v[3][2] = 1.0f,
 	.kalman_filter.observation_model.v[3][3] = 0.0f,
 	
 	//Matrix Q
@@ -114,39 +117,39 @@ static const altitude_estimation_conf_t altitude_estimation_default_config =
 	.kalman_filter.noise_prediction.v[3][3] = SQR(0.0037f), // var_acc: = 0.0037f, computed with accelerometer measurements
 	
 	//Matrix R
-	.kalman_filter.noise_measurement.v[0][0] = 0.1f, // Variance sonar
+	.kalman_filter.noise_measurement.v[0][0] = 0.0025f, // Variance sonar
 	.kalman_filter.noise_measurement.v[0][1] = 0.0f,
 	.kalman_filter.noise_measurement.v[0][2] = 0.0f,
 	.kalman_filter.noise_measurement.v[0][3] = 0.0f,
 	.kalman_filter.noise_measurement.v[1][0] = 0.0f,
-	.kalman_filter.noise_measurement.v[1][1] = 0.5f, // Variance barometer
+	.kalman_filter.noise_measurement.v[1][1] = 0.25f, // Variance barometer
 	.kalman_filter.noise_measurement.v[1][2] = 0.0f,
 	.kalman_filter.noise_measurement.v[1][3] = 0.0f,
 	.kalman_filter.noise_measurement.v[2][0] = 0.0f,
 	.kalman_filter.noise_measurement.v[2][1] = 0.0f,
-	.kalman_filter.noise_measurement.v[2][2] = 5.0f, // Variance GPS position
+	.kalman_filter.noise_measurement.v[2][2] = 25.0f, // Variance GPS position
 	.kalman_filter.noise_measurement.v[2][3] = 0.0f,
 	.kalman_filter.noise_measurement.v[3][0] = 0.0f,
 	.kalman_filter.noise_measurement.v[3][1] = 0.0f,
 	.kalman_filter.noise_measurement.v[3][2] = 0.0f,
-	.kalman_filter.noise_measurement.v[3][3] = 10.0f, // Variance GPS vertical speed
+	.kalman_filter.noise_measurement.v[3][3] = 100.0f, // Variance GPS vertical speed
 	
 	//Matrix P
-	.kalman_filter.covariance.v[0][0] = 10.0f,
+	.kalman_filter.covariance.v[0][0] = 200.0f,
 	.kalman_filter.covariance.v[0][1] = 0.0f,
 	.kalman_filter.covariance.v[0][2] = 0.0f,
 	.kalman_filter.covariance.v[0][3] = 0.0f,
 	.kalman_filter.covariance.v[1][0] = 0.0f,
-	.kalman_filter.covariance.v[1][1] = 10.0f,
+	.kalman_filter.covariance.v[1][1] = 200.0f,
 	.kalman_filter.covariance.v[1][2] = 0.0f,
 	.kalman_filter.covariance.v[1][3] = 0.0f,
 	.kalman_filter.covariance.v[2][0] = 0.0f,
 	.kalman_filter.covariance.v[2][1] = 0.0f,
-	.kalman_filter.covariance.v[2][2] = 10.0f,
+	.kalman_filter.covariance.v[2][2] = 200.0f,
 	.kalman_filter.covariance.v[3][0] = 0.0f,
 	.kalman_filter.covariance.v[3][1] = 0.0f,
 	.kalman_filter.covariance.v[3][2] = 0.0f,
-	.kalman_filter.covariance.v[3][3] = 10.0f
+	.kalman_filter.covariance.v[3][3] = 200.0f
 };
 
 #ifdef __cplusplus
