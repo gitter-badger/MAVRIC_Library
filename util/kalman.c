@@ -125,6 +125,73 @@ void kalman_4D_per_component_update(kalman_filter_4D_t *kalman, vector_4_t measu
 	kalman->covariance = mmul4(	msub4(ident_4x4, KH), kalman->covariance);
 }
 
+void kalman_5D_prediction(kalman_filter_5D_t *kalman, float control)
+{
+	kalman->state =     vadd5( 	mvmul5(kalman->system_model, kalman->state), 
+								svmul5(control, kalman->control_model));
+
+	kalman->covariance = madd5(  mmul5( 	mmul5(	kalman->system_model, 
+												kalman->covariance), 
+										trans5(kalman->system_model)), 
+								kalman->noise_prediction);
+}
+
+void kalman_5D_per_component_update(kalman_filter_5D_t *kalman, vector_5_t measurement, uint8_t m_index, uint8_t x_index)
+{
+	uint8_t dim = 5;
+	uint8_t i, j;
+	
+	vector_5_t kalman_gain;
+	
+	matrix_5x5_t KH = 
+		{.v={{0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 
+        {0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 
+        {0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 
+        {0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 
+        {0.0f, 0.0f, 0.0f, 0.0f, 0.0f}} };
+	
+	float Hx = 0.0f;
+	for ( i=0; i<dim; i++ )
+	{
+		Hx += kalman->observation_model.v[m_index][i]*kalman->state.v[i];
+	}
+	
+	float innovation = measurement.v[m_index] - Hx;
+	
+	vector_5_t PHt;
+	PHt = mvmul5(kalman->covariance,col5(trans4(kalman->observation_model),m_index));
+
+	float HPHt = 0.0f;
+	for ( i=0; i<dim; i++)
+	{
+		HPHt += kalman->observation_model.v[m_index][i] * PHt.v[i];
+	} 
+
+	float innovation_covariance_inverse = 1.0f / (HPHt + kalman->noise_measurement.v[m_index][m_index]);
+	
+	float PHt = 0.0f;
+	for( i=0; i<dim; i++ )
+	{
+		PHt = 0.0f;
+		for ( j=0; j<dim; j++ )
+		{
+			PHt += kalman->covariance.v[i][j]*kalman->observation_model.v[m_index][j];
+		}
+		kalman_gain.v[i] = PHt * innovation_covariance_inverse;
+	}
+	
+	kalman->state = vadd5(kalman->state, svmul5(innovation,kalman_gain));
+	
+	for( i=0; i<dim; i++)
+	{
+		for ( j=0; j<dim; j++)
+		{
+			KH.v[i][j] = kalman_gain.v[i]*kalman->observation_model.v[m_index][j];
+		}
+	}
+	kalman->covariance = mmul5(	msub4(ident_5x5, KH), kalman->covariance);
+}
+
 void kalman_2D_prediction(kalman_filter_2D_t *kalman, vector_2_t control) 
 {
 	kalman->state =     vadd2( 	mvmul2(kalman->system_model, kalman->state), 
