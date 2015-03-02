@@ -102,15 +102,9 @@ void kalman_4D_per_component_update(kalman_filter_4D_t *kalman, vector_4_t measu
 
 	float innovation_covariance_inverse = 1.0f / (HPHt + kalman->noise_measurement.v[m_index][m_index]);
 	
-	float PHt = 0.0f;
 	for( i=0; i<4; i++ )
 	{
-		PHt = 0.0f;
-		for ( j=0; j<4; j++ )
-		{
-			PHt += kalman->covariance.v[i][j]*kalman->observation_model.v[m_index][j];
-		}
-		kalman_gain.v[i] = PHt * innovation_covariance_inverse;
+		kalman_gain.v[i] = PHt.v[i] * innovation_covariance_inverse;
 	}
 	
 	kalman->state = vadd4(kalman->state, svmul4(innovation,kalman_gain));
