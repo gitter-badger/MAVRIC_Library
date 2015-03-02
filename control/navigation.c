@@ -234,7 +234,7 @@ static void navigation_set_speed_command(float rel_pos[], navigation_t* navigati
 	
 	dir_desired_bf[2] = rel_pos[2];
 	
-	if ((mode.AUTO == AUTO_ON) && ((navigation->state->nav_plan_active&&(!navigation->stop_nav)&&(!(navigation->internal_state==NAV_TAKEOFF))&&(!navigation->auto_landing))||((navigation->state->mav_state == MAV_STATE_CRITICAL)&&(navigation->critical_behavior == FLY_TO_HOME_WP))))
+	if ((mode.AUTO == AUTO_ON) && ((navigation->state->nav_plan_active&&(!navigation->stop_nav)&&(!(navigation->internal_state==NAV_TAKEOFF))&&(!(navigation->internal_state==NAV_LANDING)))||((navigation->state->mav_state == MAV_STATE_CRITICAL)&&(navigation->critical_behavior == FLY_TO_HOME_WP))))
 	{
 		
 		if( ((maths_f_abs(rel_pos[X])<=1.0f)&&(maths_f_abs(rel_pos[Y])<=1.0f)) || ((maths_f_abs(rel_pos[X])<=5.0f)&&(maths_f_abs(rel_pos[Y])<=5.0f)&&(maths_f_abs(rel_pos[Z])>=3.0f)) )
@@ -335,13 +335,14 @@ static mav_result_t navigation_set_auto_landing(navigation_t* navigation, mavlin
 	if (navigation->state->in_the_air)
 	{
 		result = MAV_RESULT_ACCEPTED;
-		if (!navigation->auto_landing)
+		//if (!navigation->auto_landing)
+		if(!(navigation->internal_state==NAV_LANDING))
 		{
 			navigation->auto_landing_behavior = DESCENT_TO_SMALL_ALTITUDE;
 			navigation->internal_state = NAV_LANDING;
 		}
 		
-		navigation->auto_landing = true;
+		//navigation->auto_landing = true;
 		navigation->auto_landing_next_state = false;
 		print_util_dbg_print("Auto-landing procedure initialised.\r\n");
 	}
@@ -656,13 +657,10 @@ static void navigation_auto_landing_handler(navigation_t* navigation)
 				
 			case DESCENT_TO_GND:
 				print_util_dbg_print("Auto-landing: disarming motors \r\n");
+				//navigation->auto_landing = false;
 				navigation->auto_landing_behavior = DESCENT_TO_SMALL_ALTITUDE;
-				navigation->state->mav_mode_custom = CUSTOM_BASE_MODE;
 				navigation->waypoint_handler->hold_waypoint_set = false;
-				navigation->auto_landing = false;
-				navigation->state->in_the_air = false;
-				navigation->state->mav_mode.ARMED = ARMED_OFF;
-				navigation->state->mav_state = MAV_STATE_STANDBY;
+				navigation->internal_state = NAV_LANDED;
 				break;
 		}
 	}
@@ -761,7 +759,7 @@ bool navigation_init(navigation_t* navigation, navigation_config_t* nav_config, 
 	navigation->mode.byte = state->mav_mode.byte;
 	
 	//navigation->auto_takeoff = false;
-	navigation->auto_landing = false;
+	//navigation->auto_landing = false;
 	
 	navigation->internal_state = NAV_ON_GND;
 	
@@ -856,13 +854,12 @@ task_return_t navigation_update(navigation_t* navigation)
 	{
 		case MAV_STATE_STANDBY:
 			
-			navigation->auto_landing = false;
+			//navigation->auto_landing = false;
 			//navigation->auto_takeoff = false;
 			navigation->internal_state = NAV_ON_GND;
 			navigation->stop_nav = false;
 			navigation->stop_nav_there = false;
 			navigation->waypoint_handler->hold_waypoint_set = false;
-			navigation->state->mav_mode_custom = CUSTOM_BASE_MODE;
 			navigation->critical_behavior = CLIMB_TO_SAFE_ALT;
 			navigation->auto_landing_behavior = DESCENT_TO_SMALL_ALTITUDE;
 			break;
@@ -870,7 +867,7 @@ task_return_t navigation_update(navigation_t* navigation)
 		case MAV_STATE_ACTIVE:
 			if((mode_local.byte & 0b11011100) == MAV_MODE_ATTITUDE_CONTROL)
 			{
-				navigation->auto_landing = false;
+				//navigation->auto_landing = false;
 				//navigation->auto_takeoff = false;
 				navigation->internal_state = NAV_MANUAL_CTRL;
 				navigation->stop_nav = false;
@@ -882,7 +879,8 @@ task_return_t navigation_update(navigation_t* navigation)
 			
 			if (navigation->state->in_the_air)
 			{
-				if (navigation->auto_landing)
+				//if (navigation->auto_landing)
+				if(navigation->internal_state==NAV_LANDING)
 				{
 					if ( (mode_local.AUTO == AUTO_ON) || (mode_local.GUIDED == GUIDED_ON) )
 					{

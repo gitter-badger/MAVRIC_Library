@@ -93,7 +93,7 @@ typedef struct
 	mav_mode_t mode;									///< The mode of the MAV to have a memory of its evolution
 	
 	//bool auto_takeoff;									///< The flag to start and end the auto takeoff procedure
-	bool auto_landing;									///< The flag to start and end the auto landing procedure
+	//bool auto_landing;									///< The flag to start and end the auto landing procedure
 	
 	navigation_internal_state_t internal_state;		///< The internal state of the navigation module
 	
