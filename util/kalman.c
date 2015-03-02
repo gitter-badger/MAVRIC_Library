@@ -90,8 +90,17 @@ void kalman_4D_per_component_update(kalman_filter_4D_t *kalman, vector_4_t measu
 	}
 	
 	float innovation = measurement.v[m_index] - Hx;
-		
-	float innovation_covariance_inverse = 1.0f / (kalman->covariance.v[x_index][x_index] + kalman->noise_measurement.v[m_index][m_index]);
+	
+	vector_4_t PHt;
+	PHt = mvmul4(kalman->covariance,col4(trans4(kalman->observation_model),m_index));
+
+	float HPHt = 0.0f;
+	for ( i=0; i<4; i++)
+	{
+		HPHt += kalman->observation_model.v[m_index][i] * PHt.v[i];
+	} 
+
+	float innovation_covariance_inverse = 1.0f / (HPHt + kalman->noise_measurement.v[m_index][m_index]);
 	
 	float PHt = 0.0f;
 	for( i=0; i<4; i++ )
