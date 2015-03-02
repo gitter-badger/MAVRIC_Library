@@ -86,7 +86,7 @@ typedef struct kalman_filter_4D_t
 void kalman_4D_prediction(kalman_filter_4D_t *kalman, float control);
 void kalman_4D_update(kalman_filter_4D_t *kalman, vector_4_t measurement);
 
-void kalman_4D_per_component_update(kalman_filter_4D_t *kalman, vector_4_t measurement, uint8_t m_index, uint8_t s_index);
+void kalman_4D_per_component_update(kalman_filter_4D_t *kalman, vector_4_t measurement, uint8_t m_index, uint8_t x_index);
 
 /**
  * \brief 	Kalman prediction step
