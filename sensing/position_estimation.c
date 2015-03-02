@@ -186,7 +186,7 @@ static void position_estimation_position_correction(position_estimation_t *pos_e
 	}
 	else
 	{
-		bmp085_reset_origin_altitude(pos_est->barometer, pos_est->local_position.origin.altitude);
+		//bmp085_reset_origin_altitude(pos_est->barometer, pos_est->local_position.origin.altitude);
 		pos_est->init_barometer = true;
 	}
 	
@@ -286,7 +286,7 @@ static void gps_position_init(position_estimation_t *pos_est)
 				pos_est->vel[i] = 0.0f;
 			}
 			
-			bmp085_reset_origin_altitude(pos_est->barometer, pos_est->local_position.origin.altitude);
+			//bmp085_reset_origin_altitude(pos_est->barometer, pos_est->local_position.origin.altitude);
 			pos_est->init_barometer = true;
 			
 			print_util_dbg_print("GPS position initialized!\r\n");
@@ -374,7 +374,7 @@ void position_estimation_reset_home_altitude(position_estimation_t *pos_est)
 	//}
 
 	// reset barometer offset
-	bmp085_reset_origin_altitude(pos_est->barometer, pos_est->local_position.origin.altitude);
+	//bmp085_reset_origin_altitude(pos_est->barometer, pos_est->local_position.origin.altitude);
 
 	//pos_est->barometer->altitude_offset = -pos_est->barometer->altitude - pos_est->local_position.pos[2] + pos_est->local_position.origin.altitude;
 	pos_est->init_barometer = true;
