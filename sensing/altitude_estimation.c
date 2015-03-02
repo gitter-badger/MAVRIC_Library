@@ -75,10 +75,6 @@ static void gps_position_init(altitude_estimation_t* estimator)
 			estimator->init_gps_position = true;
 			
 			estimator->kalman_filter.state.v[0] = estimator->gps->altitude;
-			estimator->kalman_filter.state.v[2] = estimator->gps->vertical_speed;
-			
-			estimator->measurement.v[2] = estimator->gps->altitude;
-			estimator->measurement.v[3] = estimator->gps->vertical_speed;
 			
 			print_util_dbg_print("GPS position initialized!\r\n");
 		}
@@ -100,6 +96,10 @@ bool altitude_estimation_init(altitude_estimation_t* estimator, const altitude_e
 	estimator->gps				= gps;
 	
 	estimator->imu				= imu;
+	
+	altitude_estimated->above_ground = 0.0f;
+	altitude_estimated->above_sea = 0.0f;
+	altitude_estimated->vertical_vel = 0.0f;
 	
 	estimator->altitude_estimated = altitude_estimated;
 	
@@ -130,113 +130,6 @@ bool altitude_estimation_init(altitude_estimation_t* estimator, const altitude_e
 		}
 	}
 	
-	/*//Matrix F
-	estimator->kalman_filter.system_model.v[0][0] = 1.0f;
-	estimator->kalman_filter.system_model.v[0][1] = 0.0f;
-	estimator->kalman_filter.system_model.v[0][2] = 0.004f;
-	estimator->kalman_filter.system_model.v[0][3] = SQR(0.004f)/2.0f;
-	estimator->kalman_filter.system_model.v[1][0] = 0.0f;
-	estimator->kalman_filter.system_model.v[1][1] = 1.0f;
-	estimator->kalman_filter.system_model.v[1][2] = 0.004f;
-	estimator->kalman_filter.system_model.v[1][3] = SQR(0.004f)/2.0f;
-	estimator->kalman_filter.system_model.v[2][0] = 0.0f;
-	estimator->kalman_filter.system_model.v[2][1] = 0.0f;
-	estimator->kalman_filter.system_model.v[2][2] = 1.0f;
-	estimator->kalman_filter.system_model.v[2][3] = 0.004f;
-	estimator->kalman_filter.system_model.v[3][0] = 0.0f;
-	estimator->kalman_filter.system_model.v[3][1] = 0.0f;
-	estimator->kalman_filter.system_model.v[3][2] = 0.0f;
-	estimator->kalman_filter.system_model.v[3][3] = 1.0f;
-	
-	//Matrix B
-	estimator->kalman_filter.control_model.v[0][0] = SQR(estimator->kalman_filter.dt)/2.0f;
-	estimator->kalman_filter.control_model.v[0][1] = 0.0f;
-	estimator->kalman_filter.control_model.v[0][2] = 0.0f;
-	estimator->kalman_filter.control_model.v[0][3] = 0.0f;
-	estimator->kalman_filter.control_model.v[1][0] = 0.0f;
-	estimator->kalman_filter.control_model.v[1][1] = SQR(estimator->kalman_filter.dt)/2.0f;
-	estimator->kalman_filter.control_model.v[1][2] = 0.0f;
-	estimator->kalman_filter.control_model.v[1][3] = 0.0f;
-	estimator->kalman_filter.control_model.v[2][0] = 0.0f;
-	estimator->kalman_filter.control_model.v[2][1] = 0.0f;
-	estimator->kalman_filter.control_model.v[2][2] = estimator->kalman_filter.dt;
-	estimator->kalman_filter.control_model.v[2][3] = 0.0f;
-	estimator->kalman_filter.control_model.v[3][0] = 0.0f;
-	estimator->kalman_filter.control_model.v[3][1] = 0.0f;
-	estimator->kalman_filter.control_model.v[3][2] = 0.0f;
-	estimator->kalman_filter.control_model.v[3][3] = 0.0f;
-	
-	//Matrix H
-	estimator->kalman_filter.observation_model.v[0][0] = 0.0f;
-	estimator->kalman_filter.observation_model.v[0][1] = 1.0f;
-	estimator->kalman_filter.observation_model.v[0][2] = 1.0f;
-	estimator->kalman_filter.observation_model.v[0][3] = 0.0f;
-	estimator->kalman_filter.observation_model.v[1][0] = 1.0f;
-	estimator->kalman_filter.observation_model.v[1][1] = 0.0f;
-	estimator->kalman_filter.observation_model.v[1][2] = 0.0f;
-	estimator->kalman_filter.observation_model.v[1][3] = 0.0f;
-	estimator->kalman_filter.observation_model.v[2][0] = 0.0f;
-	estimator->kalman_filter.observation_model.v[2][1] = 0.0f;
-	estimator->kalman_filter.observation_model.v[2][2] = 1.0f;
-	estimator->kalman_filter.observation_model.v[2][3] = 0.0f;
-	estimator->kalman_filter.observation_model.v[3][0] = 0.0f;
-	estimator->kalman_filter.observation_model.v[3][1] = 0.0f;
-	estimator->kalman_filter.observation_model.v[3][2] = 0.0f;
-	estimator->kalman_filter.observation_model.v[3][3] = 0.0f;
-	
-	//Matrix Q
-	estimator->kalman_filter.noise_prediction.v[0][0] = SQR(var_process)*SQR(dt);
-	estimator->kalman_filter.noise_prediction.v[0][1] = SQR(var_process)*SQR(dt);
-	estimator->kalman_filter.noise_prediction.v[0][2] = SQR(var_process)*dt;
-	estimator->kalman_filter.noise_prediction.v[0][3] = 0.0f;
-	estimator->kalman_filter.noise_prediction.v[1][0] = SQR(var_process)*SQR(dt);
-	estimator->kalman_filter.noise_prediction.v[1][1] = SQR(var_process)*SQR(dt);
-	estimator->kalman_filter.noise_prediction.v[1][2] = SQR(var_process)*dt;
-	estimator->kalman_filter.noise_prediction.v[1][3] = 0.0f;
-	estimator->kalman_filter.noise_prediction.v[2][0] = SQR(var_process)*dt;
-	estimator->kalman_filter.noise_prediction.v[2][1] = SQR(var_process)*dt;
-	estimator->kalman_filter.noise_prediction.v[2][2] = SQR(var_process);
-	estimator->kalman_filter.noise_prediction.v[2][3] = 0.0f;
-	estimator->kalman_filter.noise_prediction.v[3][0] = 0.0f;
-	estimator->kalman_filter.noise_prediction.v[3][1] = 0.0f;
-	estimator->kalman_filter.noise_prediction.v[3][2] = 0.0f;
-	estimator->kalman_filter.noise_prediction.v[3][3] = SQR(var_acc);
-	
-	//Matrix R
-	estimator->kalman_filter.noise_measurement.v[0][0] = 0.1f; // Variance sonar
-	estimator->kalman_filter.noise_measurement.v[0][1] = 0.0f;
-	estimator->kalman_filter.noise_measurement.v[0][2] = 0.0f;
-	estimator->kalman_filter.noise_measurement.v[0][3] = 0.0f;
-	estimator->kalman_filter.noise_measurement.v[1][0] = 0.0f;
-	estimator->kalman_filter.noise_measurement.v[1][1] = 0.5f; // Variance barometer
-	estimator->kalman_filter.noise_measurement.v[1][2] = 0.0f;
-	estimator->kalman_filter.noise_measurement.v[1][3] = 0.0f;
-	estimator->kalman_filter.noise_measurement.v[2][0] = 0.0f;
-	estimator->kalman_filter.noise_measurement.v[2][1] = 0.0f;
-	estimator->kalman_filter.noise_measurement.v[2][2] = 5.0f; // Variance GPS position
-	estimator->kalman_filter.noise_measurement.v[2][3] = 0.0f;
-	estimator->kalman_filter.noise_measurement.v[3][0] = 0.0f;
-	estimator->kalman_filter.noise_measurement.v[3][1] = 0.0f;
-	estimator->kalman_filter.noise_measurement.v[3][2] = 0.0f;
-	estimator->kalman_filter.noise_measurement.v[3][3] = 10.0f; // Variance GPS vertical speed
-	
-	//Matrix P
-	estimator->kalman_filter.covariance.v[0][0] = 10.0f;
-	estimator->kalman_filter.covariance.v[0][1] = 0.0f;
-	estimator->kalman_filter.covariance.v[0][2] = 0.0f;
-	estimator->kalman_filter.covariance.v[0][3] = 0.0f;
-	estimator->kalman_filter.covariance.v[1][0] = 0.0f;
-	estimator->kalman_filter.covariance.v[1][1] = 10.0f;
-	estimator->kalman_filter.covariance.v[1][2] = 0.0f;
-	estimator->kalman_filter.covariance.v[1][3] = 0.0f;
-	estimator->kalman_filter.covariance.v[2][0] = 0.0f;
-	estimator->kalman_filter.covariance.v[2][1] = 0.0f;
-	estimator->kalman_filter.covariance.v[2][2] = 10.0f;
-	estimator->kalman_filter.covariance.v[3][0] = 0.0f;
-	estimator->kalman_filter.covariance.v[3][1] = 0.0f;
-	estimator->kalman_filter.covariance.v[3][2] = 0.0f;
-	estimator->kalman_filter.covariance.v[3][3] = 10.0f;*/
-	
 	//State vector initialisation
 	estimator->kalman_filter.state.v[0] = 400.0f; // TODO: change to config
 	estimator->kalman_filter.state.v[1] = 0.0f;
@@ -259,16 +152,12 @@ bool altitude_estimation_init(altitude_estimation_t* estimator, const altitude_e
 
 void altitude_estimation_update(altitude_estimation_t* estimator)
 {
-	float acc_global;
+	float acc_global[3];
 	kalman_filter_4D_t* kalman = &estimator->kalman_filter;
 	
-	quat_t qacc_bf = quaternions_create_from_vector(estimator->ahrs->linear_acc);
+	quaternions_rotate_vector(estimator->ahrs->qe, estimator->ahrs->linear_acc,acc_global);
 	
-	quat_t qacc = quaternions_local_to_global(estimator->ahrs->qe, qacc_bf);
-	
-	acc_global = qacc.v[2];
-	
-	kalman_4D_prediction(&(estimator->kalman_filter), acc_global);
+	kalman_4D_prediction(&(estimator->kalman_filter), acc_global[2]);
 	
 	// sonar correction
 	if( (estimator->time_last_sonar_msg < estimator->sonar->last_update)&&(estimator->sonar->healthy) )
@@ -317,6 +206,7 @@ void altitude_estimation_update(altitude_estimation_t* estimator)
 	
 	estimator->altitude_estimated->above_sea 	= estimator->kalman_filter.state.v[0];
 	estimator->altitude_estimated->above_ground = estimator->kalman_filter.state.v[1];
+	estimator->altitude_estimated->vertical_vel = estimator->kalman_filter.state.v[2];
 
 }
 
@@ -370,6 +260,14 @@ void altitude_estimation_send_estimation(const altitude_estimation_t* alt_estima
 										time_keeper_get_millis(),
 										"altest",
 										alt_estimation->altitude_estimated->above_sea );
+	mavlink_stream_send(mavlink_stream, msg);
+	
+	mavlink_msg_named_value_float_pack(	mavlink_stream->sysid,
+										mavlink_stream->compid,
+										msg,
+										time_keeper_get_millis(),
+										"velest",
+										alt_estimation->altitude_estimated->vertical_vel );
 	mavlink_stream_send(mavlink_stream, msg);
 	
 	mavlink_msg_named_value_float_pack(	mavlink_stream->sysid,
