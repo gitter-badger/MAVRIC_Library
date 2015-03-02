@@ -190,7 +190,7 @@ void altitude_estimation_update(altitude_estimation_t* estimator)
 			
 			kalman_4D_per_component_update(kalman,estimator->measurement,2,0);
 			
-			estimator->measurement.v[3] = estimator->gps->vertical_speed;
+			estimator->measurement.v[3] = -estimator->gps->vertical_speed;
 			
 			kalman_4D_per_component_update(kalman,estimator->measurement,3,2);
 		}
