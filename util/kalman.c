@@ -73,7 +73,7 @@ void kalman_4D_update(kalman_filter_4D_t *kalman, vector_4_t measurement)
 
 void kalman_4D_per_component_update(kalman_filter_4D_t *kalman, vector_4_t measurement, uint8_t m_index, uint8_t x_index)
 {
-	uint8_t i;
+	uint8_t i, j;
 	
 	vector_4_t kalman_gain;
 	
@@ -83,22 +83,36 @@ void kalman_4D_per_component_update(kalman_filter_4D_t *kalman, vector_4_t measu
         {0.0f, 0.0f, 0.0f, 0.0f}, 
         {0.0f, 0.0f, 0.0f, 0.0f}} };
 	
-	float innovation = measurement.v[m_index] - kalman->observation_model.v[m_index][x_index]*kalman->state.v[x_index];
+	float Hx = 0.0f;
+	for ( i=0; i<4; i++ )
+	{
+		Hx += kalman->observation_model.v[m_index][i]*kalman->state.v[i];
+	}
+	
+	float innovation = measurement.v[m_index] - Hx;
 		
 	float innovation_covariance_inverse = 1.0f / (kalman->covariance.v[x_index][x_index] + kalman->noise_measurement.v[m_index][m_index]);
 	
+	float PHt = 0.0f;
 	for( i=0; i<4; i++ )
 	{
-		kalman_gain.v[i] = kalman->covariance.v[i][x_index]*kalman->observation_model.v[m_index][x_index] * innovation_covariance_inverse;
+		PHt = 0.0f;
+		for ( j=0; j<4; j++ )
+		{
+			PHt += kalman->covariance.v[i][j]*kalman->observation_model.v[m_index][j];
+		}
+		kalman_gain.v[i] = PHt * innovation_covariance_inverse;
 	}
 	
 	kalman->state = vadd4(kalman->state, svmul4(innovation,kalman_gain));
 	
 	for( i=0; i<4; i++)
 	{
-		KH.v[i][x_index] = kalman_gain.v[i]*kalman->observation_model.v[m_index][x_index];
+		for ( j=0; j<4; j++)
+		{
+			KH.v[i][j] = kalman_gain.v[i]*kalman->observation_model.v[m_index][j];
+		}
 	}
-	
 	kalman->covariance = mmul4(	msub4(ident_4x4, KH), kalman->covariance);
 }
 
