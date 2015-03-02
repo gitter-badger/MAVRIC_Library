@@ -48,7 +48,7 @@
 #endif
 
 #include "altitude_estimation.h"
-
+#include "math.h"
 
 static const altitude_estimation_conf_t altitude_estimation_default_config = 
 {
@@ -99,21 +99,21 @@ static const altitude_estimation_conf_t altitude_estimation_default_config =
 	.kalman_filter.observation_model.v[3][3] = 0.0f,
 	
 	//Matrix Q
-	.kalman_filter.noise_prediction.v[0][0] = SQR(0.5f)*SQR(0.004), // Guess: var_process = 0.5f
-	.kalman_filter.noise_prediction.v[0][1] = SQR(0.5f)*SQR(0.004),
-	.kalman_filter.noise_prediction.v[0][2] = SQR(0.5f)*0.004,
-	.kalman_filter.noise_prediction.v[0][3] = 0.0f,
-	.kalman_filter.noise_prediction.v[1][0] = SQR(0.5f)*SQR(0.004),
-	.kalman_filter.noise_prediction.v[1][1] = SQR(0.5f)*SQR(0.004),
-	.kalman_filter.noise_prediction.v[1][2] = SQR(0.5f)*0.004,
-	.kalman_filter.noise_prediction.v[1][3] = 0.0f,
-	.kalman_filter.noise_prediction.v[2][0] = SQR(0.5f)*0.004,
-	.kalman_filter.noise_prediction.v[2][1] = SQR(0.5f)*0.004,
-	.kalman_filter.noise_prediction.v[2][2] = SQR(0.5f),
-	.kalman_filter.noise_prediction.v[2][3] = 0.0f,
-	.kalman_filter.noise_prediction.v[3][0] = 0.0f,
-	.kalman_filter.noise_prediction.v[3][1] = 0.0f,
-	.kalman_filter.noise_prediction.v[3][2] = 0.0f,
+	.kalman_filter.noise_prediction.v[0][0] = 0.25f* 0.000000000256f *SQR(0.0037f), // pow(0.004f,4) = 2.56E-10
+	.kalman_filter.noise_prediction.v[0][1] = 0.25f* 0.000000000256f *SQR(0.0037f),
+	.kalman_filter.noise_prediction.v[0][2] = 0.5f*0.000000064f*SQR(0.0037f), // pow(0.004f,3) = 6.4E-8
+	.kalman_filter.noise_prediction.v[0][3] = 0.5f*SQR(0.004f)*SQR(0.0037f),
+	.kalman_filter.noise_prediction.v[1][0] = 0.25f* 0.000000000256f *SQR(0.0037f),
+	.kalman_filter.noise_prediction.v[1][1] = 0.25f* 0.000000000256f *SQR(0.0037f),
+	.kalman_filter.noise_prediction.v[1][2] = 0.5f*0.000000064f*SQR(0.0037f),
+	.kalman_filter.noise_prediction.v[1][3] = 0.5f*SQR(0.004f)*SQR(0.0037f),
+	.kalman_filter.noise_prediction.v[2][0] = 0.5f*0.000000064f*SQR(0.0037f),
+	.kalman_filter.noise_prediction.v[2][1] = 0.5f*0.000000064f*SQR(0.0037f),
+	.kalman_filter.noise_prediction.v[2][2] = SQR(0.004f)*SQR(0.0037f),
+	.kalman_filter.noise_prediction.v[2][3] = 0.004f*SQR(0.0037f),
+	.kalman_filter.noise_prediction.v[3][0] = 0.5f*SQR(0.004f)*SQR(0.0037f),
+	.kalman_filter.noise_prediction.v[3][1] = 0.5f*SQR(0.004f)*SQR(0.0037f),
+	.kalman_filter.noise_prediction.v[3][2] = 0.004f*SQR(0.0037f),
 	.kalman_filter.noise_prediction.v[3][3] = SQR(0.0037f), // var_acc: = 0.0037f, computed with accelerometer measurements
 	
 	//Matrix R
