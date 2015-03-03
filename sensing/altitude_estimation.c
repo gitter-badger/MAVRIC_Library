@@ -89,7 +89,7 @@ bool altitude_estimation_init(altitude_estimation_t* estimator, const altitude_e
 {
 	bool init_success = true;
 	
-	uint8_t dim;
+	uint8_t dim = 5;
 
 	// Init dependencies
 	estimator->sonar 				= sonar;
@@ -160,7 +160,7 @@ void altitude_estimation_update(altitude_estimation_t* estimator)
 	
 	quaternions_rotate_vector(estimator->ahrs->qe, estimator->ahrs->linear_acc,acc_global);
 	
-	kalman_5D_prediction(&(estimator->kalman_filter), acc_global[2]);
+	kalman_5D_prediction(&(estimator->kalman_filter), -acc_global[2]);
 	
 	// sonar correction
 	if( (estimator->time_last_sonar_msg < estimator->sonar->last_update)&&(estimator->sonar->healthy) )
