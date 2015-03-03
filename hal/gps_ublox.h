@@ -646,7 +646,7 @@ typedef struct
 	float course;							///< Heading in degree * 100
 	
 	float horizontal_accuracy;				///< Horizontal accuracy in m
-	float vertical_accuracy;					///< Vertical accuracy in m
+	float vertical_accuracy;				///< Vertical accuracy in m
 	
 	float speed_accuracy;					///< Speed accuracy in m
 	float heading_accuracy;					///< Heading accuracy in m
@@ -672,7 +672,7 @@ typedef struct
 } gps_t;
 
 
-uint32_t idle_timer;							///< Last time that the GPS driver got a good packet from the GPS
+uint32_t idle_timer;						///< Last time that the GPS driver got a good packet from the GPS
 uint32_t idle_timeout;						///< Time in milliseconds after which we will assume the GPS is no longer sending us updates and attempt a re-init. 1200ms allows a small amount of slack over the worst-case 1Hz update rate.
 uint32_t last_fix_time;						///< Last fix time
 
