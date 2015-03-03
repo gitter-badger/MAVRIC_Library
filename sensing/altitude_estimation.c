@@ -159,8 +159,9 @@ void altitude_estimation_update(altitude_estimation_t* estimator)
 	kalman_filter_5D_t* kalman = &estimator->kalman_filter;
 	
 	quaternions_rotate_vector(estimator->ahrs->qe, estimator->ahrs->linear_acc,acc_global);
+	acc_global[2] = -acc_global[2];
 	
-	kalman_5D_prediction(&(estimator->kalman_filter), -acc_global[2]);
+	kalman_5D_prediction(&(estimator->kalman_filter), acc_global[2]);
 	
 	// sonar correction
 	if( (estimator->time_last_sonar_msg < estimator->sonar->last_update)&&(estimator->sonar->healthy) )
@@ -210,6 +211,7 @@ void altitude_estimation_update(altitude_estimation_t* estimator)
 	estimator->altitude_estimated->above_sea 	= estimator->kalman_filter.state.v[0];
 	estimator->altitude_estimated->above_ground = estimator->kalman_filter.state.v[1];
 	estimator->altitude_estimated->vertical_vel = estimator->kalman_filter.state.v[2];
+	estimator->altitude_estimated->acc_z = acc_global[2];
 
 }
 
