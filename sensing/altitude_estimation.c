@@ -157,7 +157,7 @@ void altitude_estimation_update(altitude_estimation_t* estimator)
 	
 	quaternions_rotate_vector(estimator->ahrs->qe, estimator->ahrs->linear_acc,acc_global);
 	
-	kalman_4D_prediction(&(estimator->kalman_filter), acc_global[2]);
+	kalman_4D_prediction(&(estimator->kalman_filter), -acc_global[2]);
 	
 	// sonar correction
 	if( (estimator->time_last_sonar_msg < estimator->sonar->last_update)&&(estimator->sonar->healthy) )
