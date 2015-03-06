@@ -62,24 +62,17 @@
 
 bool state_machine_init(	state_machine_t *state_machine,
 							state_t* state, 
-							mavlink_waypoint_handler_t* waypoint_handler, 
-							simulation_model_t *sim_model, 
-							manual_control_t* manual_control,
-							const imu_t* imu,
-							const navigation_t* navigation)
+							//simulation_model_t *sim_model, 
+							manual_control_t* manual_control)
 {
 	bool init_success = true;
 	
-	state_machine->waypoint_handler = waypoint_handler;
 	state_machine->state 				= state;
-	state_machine->sim_model 		= sim_model;
+	//state_machine->sim_model 		= sim_model;
 	state_machine->manual_control 	= manual_control;
-	state_machine->imu 				= imu;
-	state_machine->navigation		= navigation;
 	
 	state_machine->channel_switches = 0;
 	state_machine->rc_check 		= 0;
-	state_machine->motor_state 		= 0;
 	
 	print_util_dbg_print("[STATE MACHINE] Initialised.\r\n");
 	
@@ -90,7 +83,7 @@ bool state_machine_init(	state_machine_t *state_machine,
 void state_machine_update(state_machine_t* state_machine)
 {
 	mav_mode_t mode_current, mode_new;
-	mav_mode_custom_t mode_custom_current; mode_custom_new;
+	mav_mode_custom_t mode_custom_current, mode_custom_new;
 	mav_state_t state_current, state_new;
 	signal_quality_t rc_check;
 	
@@ -123,21 +116,10 @@ void state_machine_update(state_machine_t* state_machine)
 			break;
 		
 		case MAV_STATE_CALIBRATING:
-			if(imu_get_internal_state(state_machine->imu)==RUNNING)
-			{
-				state_new = MAV_STATE_STANDBY;
-				break;
-			}
 			break;
 		case MAV_STATE_STANDBY:
-
-			if(imu_get_internal_state(state_machine->imu) == CALIBRATING)
-			{
-				state_new = MAV_STATE_CALIBRATING;
-				break;
-			}
-
-			state_machine->state->in_the_air = false;
+			
+			mode_custom_new = CUSTOM_BASE_MODE;
 			
 			if ( mode_new.ARMED == ARMED_ON )
 			{
@@ -162,14 +144,6 @@ void state_machine_update(state_machine_t* state_machine)
 					}
 				}
 			}
-			if (navigation_get_internal_state(state_machine->navigation)==NAV_LANDED)
-			{
-				mode_custom_new = CUSTOM_BASE_MODE;
-				state_machine->state->in_the_air = false;
-				mode_new = ARMED_OFF;
-				state_new = MAV_STATE_STANDBY;				
-			}
-			
 
 			break;
 
@@ -194,13 +168,6 @@ void state_machine_update(state_machine_t* state_machine)
 					// If in another mode, stay in critical mode
 					// higher level navigation module will take care of coming back home
 				break;
-			}
-			if(navigation_get_internal_state(state_machine->navigation)==NAV_LANDED)
-			{
-				state_new = MAV_STATE_EMERGENCY;
-				mode_custom_new = CUSTOM_BASE_MODE;
-				state_machine->state->in_the_air = false;
-				mode_new.ARMED = ARMED_OFF;
 			}
 			
 			break;
@@ -250,7 +217,8 @@ void state_machine_update(state_machine_t* state_machine)
 		if ( mode_new.HIL == HIL_ON )
 		{
 			// reality -> simulation
-			simulation_switch_from_reality_to_simulation( state_machine->sim_model );
+			//simulation_switch_from_reality_to_simulation( state_machine->sim_model );
+			state_machine->state->simu_switch = true;
 			
 			state_new = MAV_STATE_STANDBY;
 			mode_new.byte = MAV_MODE_MANUAL_DISARMED;
@@ -259,8 +227,9 @@ void state_machine_update(state_machine_t* state_machine)
 		else
 		{
 			// simulation -> reality
-			simulation_switch_from_simulation_to_reality( state_machine->sim_model );
-
+			//simulation_switch_from_simulation_to_reality( state_machine->sim_model );
+			state_machine->state->simu_switch = true;
+			
 			state_new = MAV_STATE_STANDBY;
 			mode_new.byte = MAV_MODE_SAFE;
 
@@ -274,4 +243,64 @@ void state_machine_update(state_machine_t* state_machine)
 	state_machine->state->mav_state = state_new;
 	state_machine->state->mav_mode_custom = mode_custom_new;
 
+}
+
+
+bool state_machine_do_proposed_changes(state_machine_t* state_machine, mav_state_t new_state, mav_mode_t new_mav_mode, mav_mode_custom_t new_mav_mode_custom)
+{
+	bool do_change = false;
+	switch (state_machine->state->mav_state)
+	{
+		case MAV_STATE_UNINIT:
+		case MAV_STATE_BOOT:
+		case MAV_STATE_POWEROFF:
+		case MAV_STATE_ENUM_END:
+			break;
+		
+		case MAV_STATE_CALIBRATING:
+			if (new_state == MAV_STATE_STANDBY)
+			{
+				do_change = true;
+			}
+			break;
+			
+		case MAV_STATE_STANDBY:
+			if (new_state == MAV_STATE_CALIBRATING)
+			{
+				do_change = true;
+			}
+			
+			break;
+			
+		case MAV_STATE_ACTIVE:
+			if (new_state == MAV_STATE_STANDBY)
+			{
+				do_change = true;
+				
+				state_machine->state->mav_mode_custom = CUSTOM_BASE_MODE;
+				state_machine->state->mav_mode.ARMED = ARMED_OFF;
+			}
+			break;
+			
+		case MAV_STATE_CRITICAL:
+			if ( new_state == MAV_STATE_EMERGENCY )
+			{
+				do_change = true;
+				
+				state_machine->state->mav_mode_custom = CUSTOM_BASE_MODE;
+				state_machine->state->mav_mode.ARMED = ARMED_OFF;
+			}
+			break;
+		
+		case MAV_STATE_EMERGENCY:
+		
+			break;
+	}
+	
+	if ( do_change )
+	{
+		state_machine->state->mav_state = new_state;
+	}
+	
+	return do_change;
 }

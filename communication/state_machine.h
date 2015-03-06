@@ -50,11 +50,8 @@ extern "C" {
 
 #include "scheduler.h"
 #include "state.h"
-#include "mavlink_waypoint_handler.h"
-#include "simulation.h"
+//#include "simulation.h"
 #include "manual_control.h"
-#include "imu.h"
-#include "navigation.h"
 
 /**
  * \brief Defines the state machine structure
@@ -63,15 +60,10 @@ typedef struct
 {
 	uint8_t channel_switches;							///< State of the switches of the remote
 	signal_quality_t rc_check;							///< State of the remote (receiving signal or not)
-	int8_t motor_state;									///< State of the motors to switch on and off
 
-	mavlink_waypoint_handler_t* waypoint_handler;		///< Pointer to the mavlink waypoint handler structure
 	state_t* state;										///< Pointer to the state structure
-	simulation_model_t *sim_model;						///< Pointer to the simulation structure
-	remote_t* remote;										///< Pointer to the remote structure
+	//simulation_model_t *sim_model;						///< Pointer to the simulation structure
 	manual_control_t* manual_control;					///< Pointer to the manual_control structure
-	const imu_t* imu;										///< Pointer to the IMU structure
-	const navigation_t* navigation;						///< Pointer to the navigation structure
 } state_machine_t;
 
 
@@ -82,18 +74,13 @@ typedef struct
  * \param state						Pointer to the state structure
  * \param sim_model					Pointer to the simulation structure
  * \param manual_control				Pointer to the manual_control structure
- * \param imu							Pointer to the IMU structure
- * \param navigation					Pointer to the navigation structure
  *
  * \return	True if the init succeed, false otherwise
  */
 bool state_machine_init(	state_machine_t *state_machine,
 							state_t* state, 
-							mavlink_waypoint_handler_t* waypoint_handler, 
-							simulation_model_t *sim_model, 
-							manual_control_t* manual_control,
-							const imu_t* imu,
-							const navigation_t* navigation);
+							//simulation_model_t *sim_model, 
+							manual_control_t* manual_control);
 
 /**
  * \brief   Updates the state and mode of the UAV (not implemented yet)
@@ -111,6 +98,9 @@ task_return_t state_machine_set_mav_mode_n_state(state_machine_t* state_machine)
  */
 void state_machine_update(state_machine_t* state_machine);
 
+
+
+bool state_machine_do_proposed_changes(state_machine_t* state_machine, mav_state_t new_state, mav_mode_t new_mav_mode, mav_mode_custom_t new_mav_mode_custom);
 
 #ifdef __cplusplus
 }
