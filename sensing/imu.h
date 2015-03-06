@@ -56,6 +56,7 @@ extern "C" {
 #include "quaternions.h"
 #include "scheduler.h"
 #include "state.h"
+#include "state_machine.h"
 
 #define GYRO_LPF 0.1f						///< The gyroscope linear pass filter gain
 #define ACC_LPF 0.05f						///< The accelerometer linear pass filter gain
@@ -76,15 +77,6 @@ typedef struct
 	float min_oriented_values[3];			///< Values uses for calibration
 	bool calibration;						///< In calibration mode, true
 } sensor_calib_t;
-
-/**
- * \brief Structure containing the internal states of the IMU
- */
-typedef enum
-{
-	RUNNING,
-	CALIBRATING,
-}imu_internal_state_t;
 
 /**
  * \brief Structure containing the configuration 
@@ -135,9 +127,8 @@ typedef struct
 	uint32_t last_update;						///< The time of the last IMU update in ms
 	uint8_t calibration_level;				///< The level of calibration
 
-	imu_internal_state_t internal_state;	///< The internal state of the IMU
-
 	const state_t* state;							///< The pointer to the state structure
+	state_machine_t* state_machine;
 } imu_t;
 
 
@@ -150,7 +141,7 @@ typedef struct
  *
  * \return	True if the init succeed, false otherwise
  */
-bool imu_init (imu_t *imu, const imu_conf_t *conf_imu, const state_t* state);
+bool imu_init (imu_t *imu, const imu_conf_t *conf_imu, const state_t* state, state_machine_t* state_machine);
 
 
 /**
@@ -167,15 +158,6 @@ void imu_calibrate_gyros(imu_t *imu);
  * \param	imu		The pointer to the IMU structure
  */
 void imu_update(imu_t *imu);
-
-/**
- * \brief	Returns the IMU internal state
- *
- * \param	imu		The pointer to the IMU structure
- *
- * \return The IMU internal state
- */
-imu_internal_state_t imu_get_internal_state(const imu_t* imu);
 
 #ifdef __cplusplus
 }
