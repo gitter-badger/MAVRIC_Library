@@ -89,8 +89,6 @@ bool state_init(state_t *state, state_t* state_config, const analog_monitor_t* a
 	
 	state->nav_plan_active = false;
 	
-	state->in_the_air = false;
-	
 	state->reset_position = false;
 	
 	print_util_dbg_print("[STATE] Initialized.\r\n");

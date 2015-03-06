@@ -318,11 +318,9 @@ static void waypoint_handler_set_circle_scenario(mavlink_waypoint_handler_t* way
 	{
 		waypoint_handler->state->nav_plan_active = false;
 		print_util_dbg_print("nav plan inactive");
-		if (waypoint_handler->state->in_the_air)
-		{
-			print_util_dbg_print("Resetting hold waypoint");
-			waypoint_handler->hold_waypoint_set = false;
-		}
+
+		print_util_dbg_print("Resetting hold waypoint");
+		waypoint_handler->hold_waypoint_set = false;
 	}
 }
 
@@ -402,11 +400,9 @@ static void waypoint_handler_set_circle_uniform_scenario(mavlink_waypoint_handle
 	{
 		waypoint_handler->state->nav_plan_active = false;
 		print_util_dbg_print("nav plan inactive");
-		if (waypoint_handler->state->in_the_air)
-		{
-			print_util_dbg_print("Resetting hold waypoint");
-			waypoint_handler->hold_waypoint_set = false;
-		}
+
+		print_util_dbg_print("Resetting hold waypoint");
+		waypoint_handler->hold_waypoint_set = false;
 	}
 }
 
@@ -533,11 +529,9 @@ static void waypoint_handler_set_stream_scenario(mavlink_waypoint_handler_t* way
 	{
 		waypoint_handler->state->nav_plan_active = false;
 		print_util_dbg_print("nav plan inactive");
-		if (waypoint_handler->state->in_the_air)
-		{
-			print_util_dbg_print("Resetting hold waypoint");
-			waypoint_handler->hold_waypoint_set = false;
-		}
+
+		print_util_dbg_print("Resetting hold waypoint");
+		waypoint_handler->hold_waypoint_set = false;
 	}
 }
 
@@ -698,11 +692,9 @@ static void waypoint_handler_set_swarm_scenario(mavlink_waypoint_handler_t* wayp
 	{
 		waypoint_handler->state->nav_plan_active = false;
 		print_util_dbg_print("nav plan inactive");
-		if (waypoint_handler->state->in_the_air)
-		{
-			print_util_dbg_print("Resetting hold waypoint");
-			waypoint_handler->hold_waypoint_set = false;
-		}
+
+		print_util_dbg_print("Resetting hold waypoint");
+		waypoint_handler->hold_waypoint_set = false;
 	}
 }
 

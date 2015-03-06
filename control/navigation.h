@@ -55,6 +55,7 @@ extern "C" {
 #include "tasks.h"
 #include "mavlink_communication.h"
 #include "state.h"
+#include "state_machine.h"
 #include "pid_controller.h"
 #include <stdbool.h>
 #include "manual_control.h"
@@ -66,8 +67,6 @@ typedef enum
 	NAV_MANUAL_CTRL,
 	NAV_NAVIGATING,
 	NAV_LANDING,
-	NAV_LANDED,
-	NAV_CRITICAL_LANDING,
 }navigation_internal_state_t;
 
 /**
@@ -114,6 +113,7 @@ typedef struct
 	state_t* state;										///< The pointer to the state structure in central_data
 	const mavlink_stream_t* mavlink_stream;				///< The pointer to the MAVLink stream structure
 	const manual_control_t* manual_control;				///< The pointer to the manual_control structure 
+	state_machine_t* state_machine;
 }navigation_t;
 
 
@@ -150,7 +150,7 @@ typedef struct
  *
  * \return	True if the init succeed, false otherwise
  */
-bool navigation_init(navigation_t* navigation, navigation_config_t* nav_config, control_command_t* controls_nav, const quat_t* qe, mavlink_waypoint_handler_t* waypoint_handler, const position_estimation_t* position_estimation, state_t* state, const manual_control_t* manual_control, mavlink_communication_t* mavlink_communication);
+bool navigation_init(navigation_t* navigation, navigation_config_t* nav_config, control_command_t* controls_nav, const quat_t* qe, mavlink_waypoint_handler_t* waypoint_handler, const position_estimation_t* position_estimation, state_t* state, state_machine_t* state_machine, const manual_control_t* manual_control, mavlink_communication_t* mavlink_communication);
 
 /**
  * \brief	Initialise the position hold mode

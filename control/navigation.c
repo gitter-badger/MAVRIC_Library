@@ -234,7 +234,7 @@ static void navigation_set_speed_command(float rel_pos[], navigation_t* navigati
 	
 	dir_desired_bf[2] = rel_pos[2];
 	
-	if ((mode.AUTO == AUTO_ON) && ((navigation->state->nav_plan_active&&(!navigation->stop_nav)&&(!(navigation->internal_state==NAV_TAKEOFF))&&(!(navigation->internal_state==NAV_LANDING)))||((navigation->state->mav_state == MAV_STATE_CRITICAL)&&(navigation->critical_behavior == FLY_TO_HOME_WP))))
+	if ((mode.AUTO == AUTO_ON) && ((navigation->state->nav_plan_active&&(!navigation->stop_nav)&&(navigation->internal_state==NAV_NAVIGATING))||((navigation->state->mav_state == MAV_STATE_CRITICAL)&&(navigation->critical_behavior == FLY_TO_HOME_WP))))
 	{
 		
 		if( ((maths_f_abs(rel_pos[X])<=1.0f)&&(maths_f_abs(rel_pos[Y])<=1.0f)) || ((maths_f_abs(rel_pos[X])<=5.0f)&&(maths_f_abs(rel_pos[Y])<=5.0f)&&(maths_f_abs(rel_pos[Z])>=3.0f)) )
@@ -312,7 +312,7 @@ static mav_result_t navigation_set_auto_takeoff(navigation_t *navigation, mavlin
 {	
 	mav_result_t result;
 	
-	if (!navigation->state->in_the_air)
+	if ( navigation->internal_state == NAV_ON_GND )
 	{
 		print_util_dbg_print("Starting automatic take-off from button\n");
 		//navigation->auto_takeoff = true;
@@ -332,15 +332,15 @@ static mav_result_t navigation_set_auto_landing(navigation_t* navigation, mavlin
 {
 	mav_result_t result;
 
-	if (navigation->state->in_the_air)
+	if (navigation->internal_state == NAV_NAVIGATING)
 	{
 		result = MAV_RESULT_ACCEPTED;
 		//if (!navigation->auto_landing)
-		if(!(navigation->internal_state==NAV_LANDING))
-		{
+		//if(!(navigation->internal_state==NAV_LANDING))
+		//{
 			navigation->auto_landing_behavior = DESCENT_TO_SMALL_ALTITUDE;
 			navigation->internal_state = NAV_LANDING;
-		}
+		//}
 		
 		//navigation->auto_landing = true;
 		navigation->auto_landing_next_state = false;
@@ -380,13 +380,10 @@ static void navigation_waypoint_take_off_handler(navigation_t* navigation)
 		waypoint_handler_nav_plan_init(navigation->waypoint_handler);
 	}
 	
-	//if (navigation->mode == navigation->state->mav_mode.byte)
 	if (navigation_mode_change(navigation))
 	{
 		if (navigation->waypoint_handler->dist2wp_sqr <= 16.0f)
 		{
-			//state_machine->state->mav_state = MAV_STATE_ACTIVE;
-			navigation->state->in_the_air = true;
 			//navigation->auto_takeoff = false;
 			navigation->internal_state = NAV_NAVIGATING;
 			print_util_dbg_print("Automatic take-off finised, dist2wp_sqr (10x):");
@@ -399,7 +396,6 @@ static void navigation_waypoint_take_off_handler(navigation_t* navigation)
 
 static void navigation_hold_position_handler(navigation_t* navigation)
 {
-	//if (navigation->mode != navigation->state->mav_mode.byte)
 	if (!navigation_mode_change(navigation))
 	{
 		navigation->waypoint_handler->hold_waypoint_set = false;
@@ -418,7 +414,6 @@ static void navigation_hold_position_handler(navigation_t* navigation)
 
 static void navigation_waypoint_navigation_handler(navigation_t* navigation)
 {
-	//if (navigation->mode != navigation->state->mav_mode.byte)
 	if (!navigation_mode_change(navigation))
 	{
 		navigation->waypoint_handler->hold_waypoint_set = false;
@@ -583,10 +578,12 @@ static void navigation_critical_handler(navigation_t* navigation)
 				print_util_dbg_print("Critical State! Landed, switching off motors, Emergency mode.\r\n");
 				navigation->critical_behavior = CLIMB_TO_SAFE_ALT;
 				//navigation->state->mav_mode_custom = CUSTOM_BASE_MODE;
-				//navigation->state->in_the_air = false;
 				//navigation->state->mav_mode.ARMED = ARMED_OFF;
 				//navigation->state->mav_state = MAV_STATE_EMERGENCY;
-				navigation->internal_state = NAV_LANDED;
+				navigation->internal_state = NAV_ON_GND;
+				mav_mode_t new_mode;
+				new_mode.ARMED = ARMED_OFF;
+				state_machine_do_proposed_changes(navigation->state_machine,MAV_STATE_EMERGENCY,new_mode,CUSTOM_BASE_MODE);
 				break;
 		}
 	}
@@ -660,7 +657,10 @@ static void navigation_auto_landing_handler(navigation_t* navigation)
 				//navigation->auto_landing = false;
 				navigation->auto_landing_behavior = DESCENT_TO_SMALL_ALTITUDE;
 				navigation->waypoint_handler->hold_waypoint_set = false;
-				navigation->internal_state = NAV_LANDED;
+				navigation->internal_state = NAV_ON_GND;
+				mav_mode_t new_mode;
+				new_mode.ARMED = ARMED_OFF;
+				state_machine_do_proposed_changes(navigation->state_machine,MAV_STATE_STANDBY,new_mode,CUSTOM_BASE_MODE);
 				break;
 		}
 	}
@@ -728,7 +728,7 @@ static void navigation_stopping_handler(navigation_t* navigation)
 // PUBLIC FUNCTIONS IMPLEMENTATION
 //------------------------------------------------------------------------------
 
-bool navigation_init(navigation_t* navigation, navigation_config_t* nav_config, control_command_t* controls_nav, const quat_t* qe, mavlink_waypoint_handler_t* waypoint_handler, const position_estimation_t* position_estimation, state_t* state, const manual_control_t* manual_control, mavlink_communication_t* mavlink_communication)
+bool navigation_init(navigation_t* navigation, navigation_config_t* nav_config, control_command_t* controls_nav, const quat_t* qe, mavlink_waypoint_handler_t* waypoint_handler, const position_estimation_t* position_estimation, state_t* state, state_machine_t* state_machine, const manual_control_t* manual_control, mavlink_communication_t* mavlink_communication)
 {
 	bool init_success = true;
 	
@@ -738,6 +738,7 @@ bool navigation_init(navigation_t* navigation, navigation_config_t* nav_config, 
 	navigation->waypoint_handler = waypoint_handler;
 	navigation->position_estimation = position_estimation;
 	navigation->state = state;
+	navigation->state_machine = state_machine;
 	navigation->mavlink_stream = &mavlink_communication->mavlink_stream;
 	navigation->manual_control = manual_control;
 	
@@ -865,7 +866,7 @@ task_return_t navigation_update(navigation_t* navigation)
 			break;
 			
 		case MAV_STATE_ACTIVE:
-			if((mode_local.byte & 0b11011100) == MAV_MODE_ATTITUDE_CONTROL)
+			/*if((mode_local.byte & 0b11011100) == MAV_MODE_ATTITUDE_CONTROL)
 			{
 				//navigation->auto_landing = false;
 				//navigation->auto_takeoff = false;
@@ -875,27 +876,51 @@ task_return_t navigation_update(navigation_t* navigation)
 				navigation->state->mav_mode_custom = CUSTOM_BASE_MODE;
 				navigation->critical_behavior = CLIMB_TO_SAFE_ALT;
 				navigation->auto_landing_behavior = DESCENT_TO_SMALL_ALTITUDE;
-			}
+			}*/
 			
-			if (navigation->state->in_the_air)
+			switch(navigation->internal_state)
 			{
-				//if (navigation->auto_landing)
-				if(navigation->internal_state==NAV_LANDING)
-				{
-					if ( (mode_local.AUTO == AUTO_ON) || (mode_local.GUIDED == GUIDED_ON) )
+				case NAV_ON_GND:
+					thrust = manual_control_get_thrust(navigation->manual_control);
+
+					if (thrust > -0.7f)
 					{
-						navigation_auto_landing_handler(navigation);
-						navigation_run(navigation->waypoint_handler->waypoint_hold_coordinates,navigation);
-						
-						if (navigation->auto_landing_behavior == DESCENT_TO_GND)
+						if ((mode_local.GUIDED == GUIDED_ON)||(mode_local.AUTO == AUTO_ON))
 						{
-							// Constant velocity to the ground
-							navigation->controls_nav->tvel[Z] = 0.3;
+							navigation->waypoint_handler->hold_waypoint_set = false;
+							
+							navigation->internal_state = NAV_TAKEOFF;
+						}
+						else
+						{
+							navigation->internal_state = NAV_MANUAL_CTRL;
 						}
 					}
-				}
-				else
-				{
+					break;
+				case NAV_TAKEOFF:
+					if ((mode_local.GUIDED == GUIDED_ON)||(mode_local.AUTO == AUTO_ON))
+					{
+						navigation_waypoint_take_off_handler(navigation);
+						
+						navigation_run(navigation->waypoint_handler->waypoint_hold_coordinates,navigation);
+					}
+					else
+					{
+						navigation->internal_state = NAV_MANUAL_CTRL;
+					}
+					break;
+				case NAV_MANUAL_CTRL:
+					if ((mode_local.GUIDED == GUIDED_ON)||(mode_local.AUTO == AUTO_ON))
+					{
+						navigation->internal_state = NAV_NAVIGATING;
+					}
+					navigation->stop_nav = false;
+					navigation->stop_nav_there = false;
+					navigation->state->mav_mode_custom = CUSTOM_BASE_MODE;
+					navigation->critical_behavior = CLIMB_TO_SAFE_ALT;
+					navigation->auto_landing_behavior = DESCENT_TO_SMALL_ALTITUDE;
+					break;
+				case NAV_NAVIGATING:
 					if(mode_local.AUTO == AUTO_ON)
 					{
 						navigation_waypoint_navigation_handler(navigation);
@@ -923,42 +948,29 @@ task_return_t navigation_update(navigation_t* navigation)
 						navigation_hold_position_handler(navigation);
 						
 						navigation_run(navigation->waypoint_handler->waypoint_hold_coordinates,navigation);
-						break;
-					}
-				}
-			}
-			else
-			{
-				thrust = manual_control_get_thrust(navigation->manual_control);
-
-				if (thrust > -0.7f)
-				{
-					if ((mode_local.GUIDED == GUIDED_ON)||(mode_local.AUTO == AUTO_ON))
-					{
-						//if (!navigation->auto_takeoff)
-						if (!(navigation->internal_state == NAV_TAKEOFF))
-						{
-							navigation->waypoint_handler->hold_waypoint_set = false;
-						}
-						//navigation->auto_takeoff = true;
-						navigation->internal_state = NAV_TAKEOFF;
 					}
 					else
 					{
-						navigation->state->in_the_air = true;
+						navigation->internal_state = NAV_MANUAL_CTRL;
 					}
-				}
-				
-				if ((mode_local.GUIDED == GUIDED_ON)||(mode_local.AUTO == AUTO_ON))
-				{
-					//if (navigation->auto_takeoff)
-					if (navigation->internal_state == NAV_TAKEOFF)
+					break;
+				case NAV_LANDING:
+					if ( (mode_local.AUTO == AUTO_ON) || (mode_local.GUIDED == GUIDED_ON) )
 					{
-						navigation_waypoint_take_off_handler(navigation);
-						
+						navigation_auto_landing_handler(navigation);
 						navigation_run(navigation->waypoint_handler->waypoint_hold_coordinates,navigation);
+						
+						if (navigation->auto_landing_behavior == DESCENT_TO_GND)
+						{
+							// Constant velocity to the ground
+							navigation->controls_nav->tvel[Z] = 0.3;
+						}
 					}
-				}
+					else
+					{
+						navigation->internal_state = NAV_MANUAL_CTRL;
+					}
+					break;
 			}
 			break;
 
@@ -966,7 +978,7 @@ task_return_t navigation_update(navigation_t* navigation)
 			// In MAV_MODE_VELOCITY_CONTROL, MAV_MODE_POSITION_HOLD and MAV_MODE_GPS_NAVIGATION
 			if (mode_local.STABILISE == STABILISE_ON)
 			{
-				if (navigation->state->in_the_air)
+				if ( (navigation->internal_state == NAV_NAVIGATING) || (navigation->internal_state == NAV_LANDING) )
 				{
 					navigation_critical_handler(navigation);
 					navigation_run(navigation->waypoint_handler->waypoint_critical_coordinates,navigation);
@@ -975,6 +987,7 @@ task_return_t navigation_update(navigation_t* navigation)
 			break;
 			
 		default:
+			navigation->internal_state = NAV_ON_GND;
 			break;
 	}
 	
