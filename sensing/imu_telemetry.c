@@ -43,6 +43,8 @@
 #include "imu_telemetry.h"
 #include "time_keeper.h"
 #include "print_util.h"
+#include "state_machine.h"
+#include "mav_modes.h"
 
 //------------------------------------------------------------------------------
 // PRIVATE FUNCTIONS DECLARATION
@@ -67,59 +69,88 @@ static mav_result_t imu_telemetry_start_calibration(imu_t* imu, mavlink_command_
 	mav_result_t result;
 	int16_t i;
 
+	bool change_done;
+	mav_mode_t new_mode;
+	new_mode.byte = MAV_MODE_SAFE;
+
 	print_util_dbg_print("Calibration cmd received");
 	
 	/* Trigger calibration. This command will be only accepted if in pre-flight mode. |Gyro calibration: 0: no, 1: yes| Magnetometer calibration: 0: no, 1: yes| Ground pressure: 0: no, 1: yes| Radio calibration: 0: no, 1: yes| Accelerometer calibration: 0: no, 1: yes| Compass/Motor interference calibration: 0: no, 1: yes| Empty|  */
 	
-	if ( (imu->state->mav_state == MAV_STATE_STANDBY)||(imu->state->mav_state == MAV_STATE_CALIBRATING) )
+	if  (packet->param1 == 1)
 	{
-		if  (packet->param1 == 1)
+		/*if (!imu->calib_gyro.calibration)
 		{
-			//if (!imu->calib_gyro.calibration)
-			//{
-			//print_util_dbg_print("Starting gyro calibration\r\n");
-			//imu->calib_gyro.calibration = true;
-			//imu->state->mav_state = MAV_STATE_CALIBRATING;
-			//print_util_dbg_print("Old biais:");
-			//print_util_dbg_print_vector(imu->calib_gyro.bias,2);
-			//}
-			//else
-			//{
-			//print_util_dbg_print("Stopping gyro calibration\r\n");
-			//imu->calib_gyro.calibration = false;
-			//imu->state->mav_state = MAV_STATE_STANDBY;
-			//
-			//for (i = 0; i < 3; i++)
-			//{
-			//imu->.bias[i] = (imu->calib_gyro.max_oriented_values[i] + imu->calib_gyro.min_oriented_values[i])/2.0f;
-			//imu->calib_gyro.max_oriented_values[i] = -10000.0;
-			//imu->calib_gyro.min_oriented_values[i] =  10000.0;
-			//}
-			//print_util_dbg_print("New biais:");
-			//print_util_dbg_print_vector(imu->calib_gyro.bias,2);
-			//}
-			//result = MAV_RESULT_ACCEPTED;
-			
-			result = MAV_RESULT_UNSUPPORTED;
-		}
-		
-		if (packet->param2 == 1)
-		{
-			if (!imu->calib_compass.calibration)
+			change_done = state_machine_do_proposed_changes(imu->state_machine,MAV_STATE_CALIBRATING,new_mode,CUSTOM_BASE_MODE);
+			if ( change_done )
 			{
-				print_util_dbg_print("Starting magnetometers calibration\r\n");
-				imu->calib_compass.calibration = true;
-				//imu->state->mav_state = MAV_STATE_CALIBRATING;
-				imu->internal_state = CALIBRATING;
+				print_util_dbg_print("Starting gyro calibration\r\n");
+				imu->calib_gyro.calibration = true;
 				print_util_dbg_print("Old biais:");
-				print_util_dbg_print_vector(imu->calib_compass.bias,2);
+				print_util_dbg_print_vector(imu->calib_gyro.bias,2);
+				
+				result = MAV_RESULT_ACCEPTED;
 			}
 			else
 			{
+				result = MAV_RESULT_TEMPORARILY_REJECTED;
+			}
+		}
+		else
+		{
+			change_done = state_machine_do_proposed_changes(imu->state_machine,MAV_STATE_STANDBY,new_mode,CUSTOM_BASE_MODE);
+			if ( change_done )
+			{
+				print_util_dbg_print("Stopping gyro calibration\r\n");
+				imu->calib_gyro.calibration = false;
+				
+				for (i = 0; i < 3; i++)
+				{
+					imu->calib_gyro.bias[i] = (imu->calib_gyro.max_oriented_values[i] + imu->calib_gyro.min_oriented_values[i])/2.0f;
+					imu->calib_gyro.max_oriented_values[i] = -10000.0;
+					imu->calib_gyro.min_oriented_values[i] =  10000.0;
+				}
+				print_util_dbg_print("New biais:");
+				print_util_dbg_print_vector(imu->calib_gyro.bias,2);
+				
+				result = MAV_RESULT_ACCEPTED;
+			}
+			else
+			{
+				result = MAV_RESULT_TEMPORARILY_REJECTED;
+			}
+		}*/
+		
+		result = MAV_RESULT_UNSUPPORTED;
+	}
+	
+	if (packet->param2 == 1)
+	{
+		if (!imu->calib_compass.calibration)
+		{
+			change_done = state_machine_do_proposed_changes(imu->state_machine,MAV_STATE_CALIBRATING,new_mode,CUSTOM_BASE_MODE);
+			if ( change_done )
+			{
+				print_util_dbg_print("Starting magnetometers calibration\r\n");
+				imu->calib_compass.calibration = true;
+				
+				print_util_dbg_print("Old biais:");
+				print_util_dbg_print_vector(imu->calib_compass.bias,2);
+				
+				result = MAV_RESULT_ACCEPTED;
+			}
+			else
+			{
+				result = MAV_RESULT_TEMPORARILY_REJECTED;
+			}
+		}
+		else
+		{
+			change_done = state_machine_do_proposed_changes(imu->state_machine,MAV_STATE_STANDBY,new_mode,CUSTOM_BASE_MODE);
+			if ( change_done )
+			{
 				print_util_dbg_print("Stopping compass calibration\r\n");
 				imu->calib_compass.calibration = false;
-				//imu->state->mav_state = MAV_STATE_STANDBY;
-				imu->internal_state = RUNNING;
 				
 				for (i = 0; i < 3; i++)
 				{
@@ -130,56 +161,72 @@ static mav_result_t imu_telemetry_start_calibration(imu_t* imu, mavlink_command_
 				print_util_dbg_print("New biais:");
 				print_util_dbg_print_vector(imu->calib_compass.bias,2);
 			}
-			result = MAV_RESULT_ACCEPTED;
-		}
-		
-		if (packet->param3 == 1)
-		{
-			print_util_dbg_print("Starting ground pressure calibration\r\n");
-			
-			result = MAV_RESULT_UNSUPPORTED;
-		}
-		
-		if (packet->param4 == 1)
-		{
-			print_util_dbg_print("Starting radio calibration\r\n");
-			
-			result = MAV_RESULT_UNSUPPORTED;
-		}
-		
-		if (packet->param5 == 1)
-		{
-			//if (!imu->calib_accelero.calibration)
-			//{
-			//print_util_dbg_print("Starting accelerometers calibration\r\n");
-			//imu->calib_accelero.calibration = true;
-			//imu->state->mav_state = MAV_STATE_CALIBRATING;
-			//print_util_dbg_print("Old biais:");
-			//print_util_dbg_print_vector(imu->calib_accelero.bias,2);
-			//}
-			//else
-			//{
-			//print_util_dbg_print("Stopping accelerometer calibration\r\n");
-			//imu->calib_accelero.calibration = false;
-			//imu->state->mav_state = MAV_STATE_STANDBY;
-			//
-			//for (i = 0; i < 3; i++)
-			//{
-			//imu->calib_accelero.bias[i] = (imu->calib_accelero.max_oriented_values[i] + imu->calib_accelero.min_oriented_values[i])/2.0f;
-			//imu->calib_accelero.max_oriented_values[i] = -10000.0;
-			//imu->calib_accelero.min_oriented_values[i] =  10000.0;
-			//}
-			//print_util_dbg_print("New biais:");
-			//print_util_dbg_print_vector(imu->calib_accelero.bias,2);
-			//}
-			//result = MAV_RESULT_ACCEPTED;
-			
-			result = MAV_RESULT_UNSUPPORTED;
+			else
+			{
+				result = MAV_RESULT_TEMPORARILY_REJECTED;
+			}
 		}
 	}
-	else
+	
+	if (packet->param3 == 1)
 	{
-		result = MAV_RESULT_TEMPORARILY_REJECTED;
+		print_util_dbg_print("Starting ground pressure calibration\r\n");
+		
+		result = MAV_RESULT_UNSUPPORTED;
+	}
+	
+	if (packet->param4 == 1)
+	{
+		print_util_dbg_print("Starting radio calibration\r\n");
+		
+		result = MAV_RESULT_UNSUPPORTED;
+	}
+	
+	if (packet->param5 == 1)
+	{
+		/*if (!imu->calib_accelero.calibration)
+		{
+			change_done = state_machine_do_proposed_changes(imu->state_machine,MAV_STATE_STANDBY,new_mode,CUSTOM_BASE_MODE);
+			if ( change_done )
+			{
+				print_util_dbg_print("Starting accelerometers calibration\r\n");
+				imu->calib_accelero.calibration = true;
+				print_util_dbg_print("Old biais:");
+				print_util_dbg_print_vector(imu->calib_accelero.bias,2);
+				
+				result = MAV_RESULT_ACCEPTED;
+			}
+			else
+			{
+				result = MAV_RESULT_TEMPORARILY_REJECTED;
+			}
+		}
+		else
+		{
+			change_done = state_machine_do_proposed_changes(imu->state_machine,MAV_STATE_STANDBY,new_mode,CUSTOM_BASE_MODE);
+			if ( change_done )
+			{
+				print_util_dbg_print("Stopping accelerometer calibration\r\n");
+				imu->calib_accelero.calibration = false;
+				
+				for (i = 0; i < 3; i++)
+				{
+					imu->calib_accelero.bias[i] = (imu->calib_accelero.max_oriented_values[i] + imu->calib_accelero.min_oriented_values[i])/2.0f;
+					imu->calib_accelero.max_oriented_values[i] = -10000.0;
+					imu->calib_accelero.min_oriented_values[i] =  10000.0;
+				}
+				print_util_dbg_print("New biais:");
+				print_util_dbg_print_vector(imu->calib_accelero.bias,2);
+				
+				result = MAV_RESULT_ACCEPTED;
+			}
+			else
+			{
+				result = MAV_RESULT_TEMPORARILY_REJECTED;
+			}
+		}*/
+		
+		result = MAV_RESULT_UNSUPPORTED;
 	}
 	
 	return result;
