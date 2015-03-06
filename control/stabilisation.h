@@ -48,8 +48,8 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-#include "imu.h"
 #include "pid_controller.h"
+#include <stdbool.h>
 
 /**
  * \brief	The control mode enum
