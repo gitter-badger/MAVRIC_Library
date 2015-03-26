@@ -96,13 +96,24 @@ typedef struct
 
 
 /**
- * \brief               		Initialises the altitude estimation structure
+ * \brief               		Initializes the altitude estimation structure
  * 
  * \param 	estimator    		Pointer to data structure
  * \param 	config				Pointer to configuration
+ * \param 	sonar				Pointer to the sonar
+ * \param 	barometer			Pointer to the barometer
+ * \param 	ahrs				Pointer to the ahrs
+ * \param 	gps					Pointer to the gps structure
+ * \param	imu 				Pointer to the IMU structure
  */
-bool altitude_estimation_init(altitude_estimation_t* estimator, const altitude_estimation_conf_t* config, altitude_t* altitude_estimated, const sonar_t* sonar, const barometer_t* barometer, const ahrs_t* ahrs, const gps_t* gps, const imu_t* imu);
-
+bool altitude_estimation_init(	altitude_estimation_t* estimator, 
+								const altitude_estimation_conf_t* config, 
+								altitude_t* altitude_estimated, 
+								const sonar_t* sonar, 
+								const barometer_t* barometer, 
+								const ahrs_t* ahrs, 
+								const gps_t* gps, 
+								const imu_t* imu);
 
 /**
  * \brief               	Main update function

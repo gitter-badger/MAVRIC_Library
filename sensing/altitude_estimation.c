@@ -46,6 +46,7 @@
 #include "time_keeper.h"
 #include "constants.h"
 
+
 //------------------------------------------------------------------------------
 // PRIVATE FUNCTIONS DECLARATION
 //------------------------------------------------------------------------------
@@ -93,9 +94,9 @@ bool altitude_estimation_init(altitude_estimation_t* estimator, const altitude_e
 	estimator->sonar 				= sonar;
 	estimator->barometer 			= barometer;
 	estimator->ahrs 				= ahrs;
-	estimator->gps				= gps;
+	estimator->gps					= gps;
 	
-	estimator->imu				= imu;
+	estimator->imu					= imu;
 	
 	altitude_estimated->above_ground = 0.0f;
 	altitude_estimated->above_sea = 0.0f;
