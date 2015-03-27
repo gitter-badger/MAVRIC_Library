@@ -30,14 +30,16 @@
  ******************************************************************************/
 
 /*******************************************************************************
- * \file altitude_estimation_default_config.h
- * 
- * \author MAV'RIC Team
- * \author Nicolas Dousse
- *   
- * \brief The configuration for the altitude estimation module
- *
- ******************************************************************************/
+* \file altitude_estimation_default_config.h
+*
+* \author MAV'RIC Team
+* \author Julien Lecoeur
+* \author Nicolas Dousse
+*
+*
+* \brief Default configuration for the module altitude_estimation
+*
+******************************************************************************/
 
 
 #ifndef ALTITUDE_ESTIMATION_DEFAULT_CONFIG_H_
@@ -195,4 +197,4 @@ static const altitude_estimation_conf_t altitude_estimation_default_config =
 }
 #endif
 
-#endif /* ALTITUDE_ESTIMATION_DEFAULT_CONFIG_H_ */
+#endif // ALTITUDE_ESTIMATION_DEFAULT_CONFIG_H_
