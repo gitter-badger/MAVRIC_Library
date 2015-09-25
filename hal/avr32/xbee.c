@@ -41,23 +41,26 @@
 
 
 #include "xbee.h"
-#include "uart_int.h"
-
+#include "buffer.h"
 
 buffer_t xbee_in_buffer;									///< The XBEE incoming buffer
 byte_stream_t xbee_out_stream;								///< The XBEE outgoing byte stream
 byte_stream_t xbee_in_stream;								///< The XBEE incoming byte stream
 
-void xbee_init(int32_t UID, usart_config_t usart_conf_xbee)
+bool xbee_init(int32_t UID, usart_config_t usart_conf_xbee)
 {
+	bool init_success = true;
+
 	uart_int_set_usart_conf(UID, &usart_conf_xbee);
 	
 	//uart configuration
-	uart_int_init(UID);
-	uart_int_register_write_stream(uart_int_get_uart_handle(UID), &(xbee_out_stream));
+	init_success &= uart_int_init(UID);
+	init_success &= uart_int_register_write_stream(uart_int_get_uart_handle(UID), &(xbee_out_stream));
 	// Registering streams
-	buffer_make_buffered_stream_lossy(&(xbee_in_buffer), &(xbee_in_stream));
-	uart_int_register_read_stream(uart_int_get_uart_handle(UID), &(xbee_in_stream));
+	init_success &= buffer_make_buffered_stream_lossy(&(xbee_in_buffer), &(xbee_in_stream));
+	init_success &= uart_int_register_read_stream(uart_int_get_uart_handle(UID), &(xbee_in_stream));
+
+	return init_success;
 }
 
 byte_stream_t* xbee_get_in_stream(void)
