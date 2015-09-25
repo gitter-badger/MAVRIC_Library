@@ -92,8 +92,12 @@ void write_channels(int32_t channel, int32_t pulse_us_a, int32_t pulse_us_b, uin
 // PUBLIC FUNCTIONS IMPLEMENTATION
 //------------------------------------------------------------------------------
 
-void pwm_servos_init(bool use_servos_7_8_param)
+bool pwm_servos_init(bool use_servos_7_8_param)
 {
+	bool init_success = true;
+
+	int8_t gpio_success;
+
 	use_servos_7_8 = use_servos_7_8_param;
 
 	// To unlock registers
@@ -154,7 +158,7 @@ void pwm_servos_init(bool use_servos_7_8_param)
 			{ AVR32_PWM_PWML_3_0_PIN, AVR32_PWM_PWML_3_0_FUNCTION },
 			{ AVR32_PWM_PWMH_3_0_PIN, AVR32_PWM_PWMH_3_0_FUNCTION }
 	    };			
-		gpio_enable_module(PWM_GPIO_MAP, sizeof(PWM_GPIO_MAP) / sizeof(PWM_GPIO_MAP[0]));
+		gpio_success += gpio_enable_module(PWM_GPIO_MAP, sizeof(PWM_GPIO_MAP) / sizeof(PWM_GPIO_MAP[0]));
 	}
 	else
 	{
@@ -169,10 +173,21 @@ void pwm_servos_init(bool use_servos_7_8_param)
 			{ AVR32_PWM_PWML_2_0_PIN, AVR32_PWM_PWML_2_0_FUNCTION },
 			{ AVR32_PWM_PWMH_2_0_PIN, AVR32_PWM_PWMH_2_0_FUNCTION }
 	    };			
-		gpio_enable_module(PWM_GPIO_MAP, sizeof(PWM_GPIO_MAP) / sizeof(PWM_GPIO_MAP[0]));				
+		gpio_success += gpio_enable_module(PWM_GPIO_MAP, sizeof(PWM_GPIO_MAP) / sizeof(PWM_GPIO_MAP[0]));				
 	}
 
 	AVR32_PWM.ena = 0b1111; // enable
+
+	if (gpio_success == GPIO_SUCCESS)
+	{
+		init_success = true;
+	}
+	else
+	{
+		init_success = false;
+	}
+
+	return init_success;
 }
 
 

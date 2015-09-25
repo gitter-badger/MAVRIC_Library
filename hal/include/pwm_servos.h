@@ -57,8 +57,10 @@
  * \brief						Initialize the hardware line for servos
  *
  * \param use_servos_7_8_param	Definition if the line for servos 7 and 8 is used
+ *
+ * \return  True if succeeded
  */
-void pwm_servos_init(bool use_servos_7_8_param);
+bool pwm_servos_init(bool use_servos_7_8_param);
 
 
 /**
