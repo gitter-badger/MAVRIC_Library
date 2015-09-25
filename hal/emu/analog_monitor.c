@@ -91,8 +91,10 @@ float analog_compute_avg(analog_monitor_t* analog_monitor, analog_rails_t rail)
 // PUBLIC FUNCTIONS IMPLEMENTATION
 //------------------------------------------------------------------------------
 
-void analog_monitor_init(analog_monitor_t* analog_monitor, const analog_monitor_conf_t* config) 
+bool analog_monitor_init(analog_monitor_t* analog_monitor, const analog_monitor_conf_t* config) 
 {	
+	bool init_success = true;
+
 	// Init buffer and avg outputs
 	for (int32_t i = 0; i < MONITOR_CHANNELS; ++i)
 	{
@@ -184,6 +186,8 @@ void analog_monitor_init(analog_monitor_t* analog_monitor, const analog_monitor_
 	// 						AVR32_ADCIFA_INN_ADCIN13, 
 	// 						ADCIFA_SHG_1); ///< Analog pin 13
 	// }
+
+	return init_success;
 }
 
 bool analog_monitor_update(analog_monitor_t* analog_monitor)

@@ -208,8 +208,10 @@ static void process_data(void)
 
 
 ///< Initializes ADC (configures Pins, starts Clock, sets defaults)
-void adc_int_init(uint32_t adc_frequency, uint8_t reference_source)
+bool adc_int_init(uint32_t adc_frequency, uint8_t reference_source)
 {
+	bool init_success = true;
+
 	///< Assign and enable GPIO pins to the ADC function.
 	gpio_enable_module(ADCIFA_GPIO_MAP, sizeof(ADCIFA_GPIO_MAP) / sizeof(ADCIFA_GPIO_MAP[0]));
 
@@ -240,6 +242,8 @@ void adc_int_init(uint32_t adc_frequency, uint8_t reference_source)
 	INTC_register_interrupt( (__int_handler) &process_data, AVR32_ADCIFA_SEQUENCER0_IRQ, AVR32_INTC_INT1);
 	//INTC_register_interrupt( (__int_handler) &process_data, AVR32_ADCIFA_SEQUENCER1_IRQ, AVR32_INTC_INT1);
 	//int32_t period_us=1000000 / samplingrate;
+
+	return init_success;
 }
 
 

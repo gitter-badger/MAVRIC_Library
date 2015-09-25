@@ -63,8 +63,10 @@
  *
  * \param adc_frequency		frequency of the ADC
  * \param reference_source	voltage reference for the ADC
+ *
+ * \return  True if succeeded
 */
-void adc_int_init(uint32_t adc_frequency, uint8_t reference_source);
+bool adc_int_init(uint32_t adc_frequency, uint8_t reference_source);
 
 /**
  * \brief Clear the ADC sequencer
