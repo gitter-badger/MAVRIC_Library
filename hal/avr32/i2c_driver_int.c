@@ -142,8 +142,12 @@ ISR(i2c_int_handler_i2c0,CONF_TWIM_IRQ_GROUP,CONF_TWIM_IRQ_LEVEL)
 }
 
 
-void i2c_driver_init(uint8_t  i2c_device, twim_options_t twi_opt) 
+bool i2c_driver_init(uint8_t  i2c_device, twim_options_t twi_opt) 
 {
+	bool init_success = true;
+
+	int8_t gpio_success = 0;
+
 	volatile avr32_twim_t *twim;
 	switch (i2c_device) 
 	{
@@ -151,18 +155,19 @@ void i2c_driver_init(uint8_t  i2c_device, twim_options_t twi_opt)
 		twim = &AVR32_TWIM0;
 		///< Register PDCA IRQ interrupt.
 		INTC_register_interrupt( (__int_handler) &i2c_int_handler_i2c0, AVR32_TWIM0_IRQ, AVR32_INTC_INT1);
-		gpio_enable_module_pin(AVR32_TWIMS0_TWCK_0_0_PIN, AVR32_TWIMS0_TWCK_0_0_FUNCTION);
-		gpio_enable_module_pin(AVR32_TWIMS0_TWD_0_0_PIN, AVR32_TWIMS0_TWD_0_0_FUNCTION);
+		gpio_success += gpio_enable_module_pin(AVR32_TWIMS0_TWCK_0_0_PIN, AVR32_TWIMS0_TWCK_0_0_FUNCTION);
+		gpio_success += gpio_enable_module_pin(AVR32_TWIMS0_TWD_0_0_PIN, AVR32_TWIMS0_TWD_0_0_FUNCTION);
 
 	break;
 	case I2C1:
 		twim = &AVR32_TWIM1;///< Register PDCA IRQ interrupt.
 		//INTC_register_interrupt( (__int_handler) &i2c_int_handler_i2c1, AVR32_TWIM1_IRQ, AVR32_INTC_INT1);
-		gpio_enable_module_pin(AVR32_TWIMS1_TWCK_0_0_PIN, AVR32_TWIMS1_TWCK_0_0_FUNCTION);
-		gpio_enable_module_pin(AVR32_TWIMS1_TWD_0_0_PIN, AVR32_TWIMS1_TWD_0_0_FUNCTION);
+		gpio_success += gpio_enable_module_pin(AVR32_TWIMS1_TWCK_0_0_PIN, AVR32_TWIMS1_TWCK_0_0_FUNCTION);
+		gpio_success += gpio_enable_module_pin(AVR32_TWIMS1_TWD_0_0_PIN, AVR32_TWIMS1_TWD_0_0_FUNCTION);
 	break;
 	default: ///< invalid device ID
-		return;
+		init_success = false;
+		return init_success;
 	}
 	
 	twi_opt.pba_hz = sysclk_get_pba_hz();
@@ -175,13 +180,18 @@ void i2c_driver_init(uint8_t  i2c_device, twim_options_t twi_opt)
 	{
 		case ERR_IO_ERROR :
 			print_util_dbg_print("NO Twim probe here \r\n");
+			init_success &= true;
 		case STATUS_OK :
 			print_util_dbg_print("I2C initialised \r\n");
+			init_success &= true;
 			break;
 		default :
 			print_util_dbg_print("Error initialising I2C \r\n");
+			init_success = false;
 			break;
 	}
+
+	return init_success;
 }
 
 int8_t  i2c_driver_reset(uint8_t  i2c_device) 

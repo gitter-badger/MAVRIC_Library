@@ -89,7 +89,7 @@ typedef struct
  * \param	i2c_device		select which device to initialize
  * \param	twi_opt			i2c	driver configurations
 */
-void i2c_driver_init(uint8_t  i2c_device, twim_options_t twi_opt);
+bool i2c_driver_init(uint8_t  i2c_device, twim_options_t twi_opt);
 
 /**
  * \brief Append the i2c transfer
