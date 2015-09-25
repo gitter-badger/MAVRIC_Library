@@ -151,8 +151,10 @@ int8_t buffer_empty(buffer_t * buffer);
  * 
  * \param buffer 	Pointer to buffer
  * \param stream 	Pointer to stream
+ *
+ * \return  True if succeeded
  */
-void buffer_make_buffered_stream(buffer_t *buffer, byte_stream_t *stream);
+bool buffer_make_buffered_stream(buffer_t *buffer, byte_stream_t *stream);
 
 
 /**
@@ -161,6 +163,8 @@ void buffer_make_buffered_stream(buffer_t *buffer, byte_stream_t *stream);
  * 
  * \param buffer 	Pointer to buffer
  * \param stream 	Pointer to stream
+ *
+ * \return  True if succeeded
  */
 bool buffer_make_buffered_stream_lossy(buffer_t *buffer, byte_stream_t *stream);
 

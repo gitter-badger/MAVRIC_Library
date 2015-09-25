@@ -153,13 +153,22 @@ void buffer_clear(buffer_t * buffer)
 }
 
 
-void buffer_make_buffered_stream(buffer_t *buffer, byte_stream_t *stream) 
+bool buffer_make_buffered_stream(buffer_t *buffer, byte_stream_t *stream) 
 {
+	bool init_success = true;
+
+	if ( (buffer == NULL)||(stream == NULL) )
+	{
+		init_success = false;
+	}
+
 	stream->get = ( uint8_t(*)(stream_data_t*) ) &buffer_get;				// Here we need to explicitely cast the function to match the prototype  
 	stream->put = ( uint8_t(*)(stream_data_t*, uint8_t) ) &buffer_put;		// stream->get and stream->put expect stream_data_t* as first argument
 	stream->flush = NULL;													// but buffer_get and buffer_put take buffer_t* as first argument
 	stream->data = buffer;
 	stream->bytes_available = ( uint32_t(*)(stream_data_t*) ) &buffer_bytes_available;
+
+	return init_success;
 }
 
 
