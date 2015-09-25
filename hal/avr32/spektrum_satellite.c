@@ -224,8 +224,12 @@ ISR(spectrum_handler, AVR32_USART1_IRQ, AVR32_INTC_INTLEV_INT1)
 // PUBLIC FUNCTIONS IMPLEMENTATION
 //------------------------------------------------------------------------------
 
-void spektrum_satellite_init(satellite_t* satellite, usart_config_t usart_conf_spektrum) 
+bool spektrum_satellite_init(satellite_t* satellite, usart_config_t usart_conf_spektrum) 
 {
+	bool init_success = true;
+
+	int8_t gpio_success, usart_success;
+
 	//init dependencies
 	spek_sat = satellite;
 	satellite->usart_conf_sat = usart_conf_spektrum;
@@ -255,15 +259,35 @@ void spektrum_satellite_init(satellite_t* satellite, usart_config_t usart_conf_s
     spek_sat->protocol_proba.proba_11bits = 0;
     
 	// Assign GPIO pins to USART_0.
-    gpio_enable_module(	USART_GPIO_MAP,
-                     	sizeof(USART_GPIO_MAP) / sizeof(USART_GPIO_MAP[0]) );
+    gpio_success = gpio_enable_module(	USART_GPIO_MAP,
+                     				sizeof(USART_GPIO_MAP) / sizeof(USART_GPIO_MAP[0]) );
 	
+    if (gpio_success == GPIO_SUCCESS)
+    {
+    	init_success &= true;
+    }
+    else
+    {
+    	init_success = false;
+    }
+
     // Initialize the USART in RS232 mode.
-    usart_init_rs232( (usart_conf_spektrum.uart_device.uart), &usart_conf_spektrum.options, sysclk_get_cpu_hz() );
+    usart_success = usart_init_rs232( (usart_conf_spektrum.uart_device.uart), &usart_conf_spektrum.options, sysclk_get_cpu_hz() );
 	INTC_register_interrupt( (__int_handler) &spectrum_handler, usart_conf_spektrum.uart_device.IRQ, AVR32_INTC_INT1 );
 	usart_conf_spektrum.uart_device.uart->ier = AVR32_USART_IER_RXRDY_MASK;
 	
+	if (usart_success == USART_SUCCESS)
+	{
+		init_success &= true;
+	}
+	else
+	{
+		init_success = false;
+	}
+
 	spektrum_satellite_switch_on();
+
+	return init_success;
 }
 
 void spektrum_satellite_bind(radio_protocol_t protocol)

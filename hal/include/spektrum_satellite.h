@@ -59,8 +59,10 @@
  *
  * \param satellite				pointer to the satellite receiver struct
  * \param usart_conf_spektrum	configuration of the satellite uart
+ *
+ * \return  True if succeeded
  */
-void spektrum_satellite_init (satellite_t *satellite, usart_config_t usart_conf_spektrum);
+bool spektrum_satellite_init (satellite_t *satellite, usart_config_t usart_conf_spektrum);
 
 
 /**
