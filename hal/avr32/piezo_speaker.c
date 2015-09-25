@@ -103,23 +103,31 @@ static void piezo_speaker_set_value_binary(int32_t binary_value)
 // PUBLIC FUNCTIONS IMPLEMENTATION
 //------------------------------------------------------------------------------
 
-void piezo_speaker_init(void) 
+bool piezo_speaker_init(void) 
 {
+	bool init_success = true;
+
 	gpio_configure_pin(PIEZO_HIGH_PIN, GPIO_DIR_OUTPUT);
 	gpio_set_pin_low(PIEZO_HIGH_PIN);
 	gpio_configure_pin(PIEZO_LOW_PIN, GPIO_DIR_OUTPUT);
 	gpio_set_pin_low(PIEZO_LOW_PIN);
-	dac_dma_init(0);
+	init_success &= dac_dma_init(0);
 	piezo_speaker_set_value(0);
+
+	return init_success;
 }
 
 
-void piezo_speaker_init_binary(void) 
+bool piezo_speaker_init_binary(void) 
 {
+	bool init_success = true;
+
 	gpio_configure_pin(PIEZO_HIGH_PIN, GPIO_DIR_OUTPUT);
 	gpio_set_pin_low(PIEZO_HIGH_PIN);
 	gpio_configure_pin(PIEZO_LOW_PIN, GPIO_DIR_OUTPUT);
 	gpio_set_pin_low(PIEZO_LOW_PIN);
+
+	return init_success;
 }
 
 

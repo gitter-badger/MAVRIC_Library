@@ -48,6 +48,7 @@
 #endif
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #define PIEZO_HIGH_PIN AVR32_PIN_PA12			///< Define the Microcontroller pin associated with the high pin of the piezo speaker
 #define PIEZO_LOW_PIN AVR32_PIN_PA15			///< Define the Microcontroller pin associated with the low pin of the piezo speaker
@@ -55,14 +56,18 @@
 
 /**
  * \brief Initialize the piezo speaker
+ *
+ * \return  True if succeeded
  */
-void piezo_speaker_init(void);
+bool piezo_speaker_init(void);
 
 
 /**
  * \brief Initialize the speaker in a binary(?) mode
+ *
+ * \return  True if succeeded
  */
-void piezo_speaker_init_binary(void);
+bool piezo_speaker_init_binary(void);
 
 
 /**
