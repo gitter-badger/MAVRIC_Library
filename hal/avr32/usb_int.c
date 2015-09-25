@@ -47,18 +47,31 @@
 static usb_config_t usb_conf;			///< Declare an object to store USB configuration
 
 
-void usb_int_set_usb_conf(usb_config_t* usb_config)
+bool usb_int_set_usb_conf(usb_config_t* usb_config)
 {
+	bool init_success = true;
+
+	if (usb_config == NULL)
+	{
+		init_success = false;
+	}
+
 	usb_conf.mode						= usb_config->mode;
 	usb_conf.usb_device.IRQ				= usb_config->usb_device.IRQ;
 	usb_conf.usb_device.receive_stream	= usb_config->usb_device.receive_stream;
+
+	return init_success;
 }
 
-void usb_int_init(void)
+bool usb_int_init(void)
 {
+	bool init_success = true;
+
 	stdio_usb_init(NULL);
 	// stdio_usb_init();
-	stdio_usb_enable();
+	init_success &= stdio_usb_enable();
+
+	return init_success;
 } 
 
 
@@ -81,17 +94,35 @@ void usb_int_send_byte(usb_config_t *usb_conf, uint8_t data)
 }
 
 
-void usb_int_register_write_stream(usb_config_t *usb_conf, byte_stream_t *stream) 
+bool usb_int_register_write_stream(usb_config_t *usb_conf, byte_stream_t *stream) 
 {
+	bool init_success = true;
+
+	if ( (usb_conf == NULL) || (stream == NULL) )
+	{
+		init_success = false;
+	}
+
 	stream->get = NULL;
 	stream->put = (uint8_t(*)(stream_data_t*, uint8_t))&usb_int_send_byte;			// Here we need to explicitly cast the function to match the prototype
 	stream->flush = NULL;															// stream->get and stream->put expect stream_data_t* as first argument
 	stream->buffer_empty = NULL;													// but buffer_get and buffer_put take Buffer_t* as first argument
 	stream->data = usb_conf;
+
+	return init_success;
 }
 
-void  usb_int_register_read_stream(usb_config_t *usb_conf, byte_stream_t *stream)
+bool  usb_int_register_read_stream(usb_config_t *usb_conf, byte_stream_t *stream)
 {
+	bool init_success = true;
+
+	if ( (usb_conf == NULL) || (stream == NULL) )
+	{
+		init_success = false;
+	}
+
 	usb_conf->usb_device.receive_stream = stream;
+
+	return init_success;
 }
 

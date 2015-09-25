@@ -50,31 +50,41 @@ byte_stream_t console_out_stream;		///< The console outgoing byte stream
 byte_stream_t console_in_stream;		///< The console incoming byte stream
 
 
-void console_init(console_port_t console_port, usart_config_t usart_conf_console, usb_config_t usb_conf_console)
+bool console_init(console_port_t console_port, usart_config_t usart_conf_console, usb_config_t usb_conf_console)
 {
+	bool init_success = true;
+
 	if((console_port >= CONSOLE_UART0) && (console_port <= CONSOLE_UART4))
 	{
 		uart_int_set_usart_conf(console_port, &usart_conf_console);
 		
 		//uart configuration
-		uart_int_init(console_port);
-		uart_int_register_write_stream(uart_int_get_uart_handle(console_port), &(console_out_stream));
+		init_success &= uart_int_init(console_port);
+		init_success &= uart_int_register_write_stream(uart_int_get_uart_handle(console_port), &(console_out_stream));
 		// Registering streams
-		buffer_make_buffered_stream_lossy(&(console_in_buffer), &(console_in_stream));
-		uart_int_register_read_stream(uart_int_get_uart_handle(console_port), &(console_in_stream));
+		init_success &= buffer_make_buffered_stream_lossy(&(console_in_buffer), &(console_in_stream));
+		init_success &= uart_int_register_read_stream(uart_int_get_uart_handle(console_port), &(console_in_stream));
 	}
 	
 	if(console_port == CONSOLE_USB)
 	{
-		usb_int_set_usb_conf(&usb_conf_console);
+		init_success &= usb_int_set_usb_conf(&usb_conf_console);
 		
 		// usb configuration
-		usb_int_init();
-		usb_int_register_write_stream(usb_int_get_usb_handle(), &(console_out_stream));
+		init_success &= usb_int_init();
+		init_success &= usb_int_register_write_stream(usb_int_get_usb_handle(), &(console_out_stream));
 		// Registering streams
-		buffer_make_buffered_stream_lossy(&(console_in_buffer), &(console_in_stream));
-		usb_int_register_read_stream(usb_int_get_usb_handle(), &(console_in_stream));
-	}	
+		init_success &= buffer_make_buffered_stream_lossy(&(console_in_buffer), &(console_in_stream));
+		init_success &= usb_int_register_read_stream(usb_int_get_usb_handle(), &(console_in_stream));
+	}
+
+	if ( ((console_port >= CONSOLE_UART0) && (console_port <= CONSOLE_UART4)) || (console_port == CONSOLE_USB) )
+	{
+		init_success = false;
+	}
+
+
+	return init_success;
 }
 
 byte_stream_t* console_get_in_stream(void)

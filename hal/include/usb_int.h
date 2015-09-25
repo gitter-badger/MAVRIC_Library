@@ -95,14 +95,18 @@ enum AVAILABLE_USB
  * \brief	Initialize the USB config
  *
  * \param	usb_config	Structure with the config defined
+ *
+ * \return  True if succeeded
  */
-void usb_int_set_usb_conf(usb_config_t* usb_config);
+bool usb_int_set_usb_conf(usb_config_t* usb_config);
 
 
 /**
  * \brief	Initialize the USB line
+ *
+ * \return  True if succeeded
  */
-void usb_int_init(void);
+bool usb_int_init(void);
 
 
 /**
@@ -152,8 +156,10 @@ void usb_int_send_byte(usb_config_t *usb_conf, uint8_t data) ;
  * 
  * \param	usb_conf	The pointer to the USB line
  * \param	stream		The pointer to the stream on which you want to register a write stream
+ *
+ * \return  True if succeeded
  */
-void usb_int_register_write_stream(usb_config_t *usb_conf, byte_stream_t *stream);
+bool usb_int_register_write_stream(usb_config_t *usb_conf, byte_stream_t *stream);
 
 /**
  * \brief Registers a stream interface with the UART transmitter (data put into the stream will be sent). 
@@ -170,8 +176,10 @@ void usb_int_register_write_stream(usb_config_t *usb_conf, byte_stream_t *stream
  * 
  * \param	usb_conf	The pointer to the USB line
  * \param	stream		The pointer to the stream on which you want to register a read stream
+ *
+ * \return  True if succeeded
  */
-void  usb_int_register_read_stream(usb_config_t *usb_conf, byte_stream_t *stream);
+bool  usb_int_register_read_stream(usb_config_t *usb_conf, byte_stream_t *stream);
 
 #ifdef __cplusplus
 }
