@@ -96,7 +96,7 @@ bool pwm_servos_init(bool use_servos_7_8_param)
 {
 	bool init_success = true;
 
-	int8_t gpio_success;
+	int8_t gpio_success = 0;
 
 	use_servos_7_8 = use_servos_7_8_param;
 
