@@ -88,8 +88,10 @@ UART_HANDLER(4);
  * \brief Register UART handler
  *
  * \param	UID		UART identification number
+ *
+ * \return 	True if succeeded
  */
-void register_UART_handler(int32_t UID);
+bool register_UART_handler(int32_t UID);
 
 /**
  * \brief Empty UART out buffer
@@ -102,26 +104,38 @@ int32_t uart_out_buffer_empty(usart_config_t *usart_conf);
 // PRIVATE FUNCTIONS IMPLEMENTATION
 //------------------------------------------------------------------------------
 
-void register_UART_handler(int32_t UID)
+bool register_UART_handler(int32_t UID)
 {
+	bool init_success = true;
+
 	switch(UID)
 	{
 		case 0: 	
 			INTC_register_interrupt( (__int_handler) &uart_handler_0, AVR32_USART0_IRQ, AVR32_INTC_INT1);
 			break;
+
 		case 1: 
 			INTC_register_interrupt( (__int_handler) &uart_handler_1, usart_conf[1].uart_device.IRQ, AVR32_INTC_INT1);
 			break;
+
 		case 2: 
 			INTC_register_interrupt( (__int_handler) &uart_handler_2, usart_conf[2].uart_device.IRQ, AVR32_INTC_INT1);
 			break;
+
 		case 3: 
 			INTC_register_interrupt( (__int_handler) &uart_handler_3, usart_conf[3].uart_device.IRQ, AVR32_INTC_INT1);
 			break;
+
 		case 4: 
 			INTC_register_interrupt( (__int_handler) &uart_handler_4, usart_conf[4].uart_device.IRQ, AVR32_INTC_INT1);
 			break;
+
+		default:
+			init_success = false;
+			break;
 	}
+
+	return init_success;
 }
 
 
@@ -150,22 +164,45 @@ void uart_int_set_usart_conf(int32_t UID, usart_config_t* usart_config)
 	usart_conf[UID].tx_pin_map					= usart_config->tx_pin_map;
 }
 
-void uart_int_init(int32_t UID) 
+bool uart_int_init(int32_t UID) 
 {
+	bool init_success = true;
+
+	int8_t gpio_success = GPIO_INVALID_ARGUMENT;
+	int8_t usart_success;
+
 	if ((usart_conf[UID].mode&UART_IN) > 0)
 	{
-		gpio_enable_module_pin(usart_conf[UID].rx_pin_map.pin, usart_conf[UID].rx_pin_map.function); 
+		gpio_success += gpio_enable_module_pin(usart_conf[UID].rx_pin_map.pin, usart_conf[UID].rx_pin_map.function); 
 	}
 	
 	if ((usart_conf[UID].mode&UART_OUT) > 0)
 	{
-		gpio_enable_module_pin(usart_conf[UID].tx_pin_map.pin, usart_conf[UID].tx_pin_map.function); 
+		gpio_success += gpio_enable_module_pin(usart_conf[UID].tx_pin_map.pin, usart_conf[UID].tx_pin_map.function); 
 	}
 
-	usart_init_rs232( usart_conf[UID].uart_device.uart, &(usart_conf[UID].options), sysclk_get_cpu_hz()); 
+	if (gpio_success == GPIO_SUCCESS)
+	{
+		init_success = true;
+	}
+	else
+	{
+		init_success = false;
+	}
+
+	usart_success = usart_init_rs232( usart_conf[UID].uart_device.uart, &(usart_conf[UID].options), sysclk_get_cpu_hz()); 
 	//usart_write_line(usart_conf[UID].uart_device.uart, "UART initialised\r\n");
 	
-	register_UART_handler(UID);
+	if (usart_success == USART_SUCCESS)
+	{
+		init_success &= true;
+	}
+	else
+	{
+		init_success &= false;
+	}
+
+	init_success &= register_UART_handler(UID);
 	
 	buffer_init(&(usart_conf[UID].uart_device.transmit_buffer));
 	buffer_init(&(usart_conf[UID].uart_device.receive_buffer));
@@ -179,6 +216,8 @@ void uart_int_init(int32_t UID)
 	//{
 		//usart_conf[UID].uart_device.uart->ier = AVR32_USART_IER_TXRDY_MASK;
 	//}
+
+	return init_success;
 } 
 
 usart_config_t *uart_int_get_uart_handle(int32_t UID) 
@@ -215,19 +254,37 @@ void uart_int_flush(usart_config_t *usart_conf)
 	while (!buffer_empty(&(usart_conf->uart_device.transmit_buffer)));
 }
 
-void uart_int_register_write_stream(usart_config_t *usart_conf, byte_stream_t *stream) 
+bool uart_int_register_write_stream(usart_config_t *usart_conf, byte_stream_t *stream) 
 {
+	bool init_success = true;
+
+	if ( (usart_conf == NULL)||(stream == NULL) )
+	{
+		init_success = false;
+	}
+
 	stream->get = NULL;
 	//stream->get = &uart_int_get_byte;
 	stream->put = (uint8_t(*)(stream_data_t*, uint8_t))&uart_int_send_byte;			// Here we need to explicitly cast the function to match the prototype
 	stream->flush = (void(*)(stream_data_t*))&uart_int_flush;						// stream->get and stream->put expect stream_data_t* as first argument
 	stream->buffer_empty = (int32_t(*)(stream_data_t*))&uart_out_buffer_empty;			// but buffer_get and buffer_put take buffer_t* as first argument
 	stream->data = usart_conf;
+
+	return init_success;
 }
 
-void uart_int_register_read_stream(usart_config_t *usart_conf,  byte_stream_t *stream) 
+bool uart_int_register_read_stream(usart_config_t *usart_conf,  byte_stream_t *stream) 
 {
+	bool init_success = true;
+
+	if ( (usart_conf == NULL)||(stream == NULL) )
+	{
+		init_success = false;
+	}
+
 	usart_conf->uart_device.receive_stream = stream;
+
+	return init_success;
 }
 
 

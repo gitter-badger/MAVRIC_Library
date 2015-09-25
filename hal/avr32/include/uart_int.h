@@ -124,7 +124,7 @@ void uart_int_set_usart_conf(int32_t UID, usart_config_t* usart_config);
  *
  * \param	UID							The UART ID line
  */
-void uart_int_init(int32_t UID);
+bool uart_int_init(int32_t UID);
 
 /**
  * \brief	Get the UART line pointer
@@ -178,8 +178,10 @@ void uart_int_flush(usart_config_t *usart_conf );
  * 
  * \param	usart_conf	The pointer to the UART line
  * \param	stream		The pointer to the stream on which you want to register a write stream
+ *
+ * \return  True if succeeded
  */
-void uart_int_register_write_stream(usart_config_t *usart_conf, byte_stream_t *stream);
+bool uart_int_register_write_stream(usart_config_t *usart_conf, byte_stream_t *stream);
 
 /**
  * \brief Registers a stream interface with the UART transmitter (data put into the stream will be sent). 
@@ -197,7 +199,7 @@ void uart_int_register_write_stream_nonblocking(usart_config_t *usart_conf, byte
  * \param	usart_conf	The pointer to the UART line
  * \param	stream		The pointer to the stream on which you want to register a read stream
  */
-void uart_int_register_read_stream(usart_config_t *usart_conf,  byte_stream_t *stream);
+bool uart_int_register_read_stream(usart_config_t *usart_conf,  byte_stream_t *stream);
 
 #ifdef __cplusplus
 }
