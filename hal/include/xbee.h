@@ -44,7 +44,6 @@
 #define XBEE_H_
 
 #include "streams.h"
-#include "buffer.h"
 #include "uart_int.h"
 
 /**
@@ -52,8 +51,10 @@
  *
  * \param	UID					UART device number
  * \param	usart_conf_xbee		Configuration of the UART of the Xbee module
+ *
+ * \return  True if succeeded
  */
-void xbee_init(int32_t UID, usart_config_t usart_conf_xbee);
+bool xbee_init(int32_t UID, usart_config_t usart_conf_xbee);
 
 /**
  * \brief Return the xbee in stream
