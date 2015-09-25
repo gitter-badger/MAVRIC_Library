@@ -72,8 +72,10 @@
  * \brief Initialize the DAC module
  *
  * \param trigger_mode trigger selection for the DAC mode
-*/
-void dac_dma_init(int32_t trigger_mode);
+ *
+ * \return  True if succeeded
+ */
+bool dac_dma_init(int32_t trigger_mode);
 
 /**
  * \brief get the DAC sampling buffer
@@ -82,12 +84,12 @@ void dac_dma_init(int32_t trigger_mode);
  * \param from_sample (?)
  * \param to_sample (?)
  * \param repeat (?)
-*/
+ */
 void dac_dma_load_buffer(uint16_t* samples, int32_t from_sample, int32_t to_sample, int32_t repeat);
 
 /**
  * \brief Play a sound using the DAC
-*/
+ */
 void dac_dma_play(void);
 
 ///< not implemented yet
@@ -101,7 +103,7 @@ int32_t  DAC_is_finished();
  * \brief set a voltage on a pin using the DAC
  *
  * \param output desired voltage
-*/
+ */
 void dac_dma_set_value(int32_t output);
 
 #ifdef __cplusplus

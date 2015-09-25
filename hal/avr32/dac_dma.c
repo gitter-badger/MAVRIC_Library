@@ -121,7 +121,12 @@ void init_gclk(void)
   scif_gc_enable(AVR32_SCIF_GCLK_GCLK2_EVENT);
 }
 
-void dac_dma_init(int32_t trigger_mode) {
+bool dac_dma_init(int32_t trigger_mode)
+{
+	bool init_success = true;
+	
+	int8_t gpio_success = 0;
+
 	///< GPIO pin/dac-function map.
 	static const gpio_map_t DACIFB_GPIO_MAP =
 	{
@@ -151,7 +156,16 @@ void dac_dma_init(int32_t trigger_mode) {
 		.data_round_enable    = false                ///< Data Rouding Mode                                              };
 	};
 	///< Assign and enable GPIO pins to the DAC function.
-	gpio_enable_module(DACIFB_GPIO_MAP, sizeof(DACIFB_GPIO_MAP) / sizeof(DACIFB_GPIO_MAP[0]));
+	gpio_success += gpio_enable_module(DACIFB_GPIO_MAP, sizeof(DACIFB_GPIO_MAP) / sizeof(DACIFB_GPIO_MAP[0]));
+
+	if (gpio_success == GPIO_SUCCESS)
+	{
+		init_success &= true;
+	}
+	else
+	{
+		init_success = false;
+	}
 
 	///< Get DACIFB Factory Configuration
 	//dacifb_get_calibration_data(dacifb, &dacifb_opt, DAC_AUDIO_INSTANCE);
@@ -160,19 +174,22 @@ void dac_dma_init(int32_t trigger_mode) {
 	if (dacifb_configure(dacifb, &dacifb_opt, FOSC0) == 0) 
 	{
 		print_util_dbg_print("error configuring DAC\r\n");
-		return;
+		init_success = false;
 	}
-	
 	///< Enable and configure channel DACIFB
-	if (dacifb_configure_channel(dacifb, dac_channel_audio, &dacifb_channel_opt, DAC_PRESCALER_CLOCK) ==0) 
+	else if (dacifb_configure_channel(dacifb, dac_channel_audio, &dacifb_channel_opt, DAC_PRESCALER_CLOCK) ==0) 
 	{
 		print_util_dbg_print("error configuring DAC channel\r\n");
-		return;
+		init_success = false;
 	}
-  
-	dacifb_start_channel(dacifb,
+	else
+	{
+		dacifb_start_channel(dacifb,
 						dac_channel_audio,
 						FOSC0);
+	}
+  
+	return init_success;
 }
 
 void dac_dma_load_buffer(uint16_t* samples, int32_t from_sample, int32_t to_sample, int32_t repeat) 
