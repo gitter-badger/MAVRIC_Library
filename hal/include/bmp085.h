@@ -89,8 +89,10 @@ void bmp085_reset_origin_altitude(barometer_t* bmp085, float origin_altitude);
  * \brief Update the barometer
  *
  * \param bmp085				Pointer to the barometer 085 struct
+ *
+ * \return						The result of the task execution
 */
-void bmp085_update(barometer_t *bmp085);
+bool bmp085_update(barometer_t *bmp085);
 
 
 #ifdef __cplusplus

@@ -180,16 +180,20 @@ void simulation_update(simulation_model_t *sim);
  * \brief	Simulates barometer outputs
  *
  * \param	sim				The pointer to the simulation model structure
+ *
+ * \return	The result of the task execution
  */
-void simulation_simulate_barometer(simulation_model_t *sim);
+bool simulation_simulate_barometer(simulation_model_t *sim);
 
 
 /**
  * \brief	Simulates GPS outputs
  *
  * \param	sim				The pointer to the simulation model structure
+ *
+ * \return	The result of the task execution
  */
-void simulation_simulate_gps(simulation_model_t *sim);
+bool simulation_simulate_gps(simulation_model_t *sim);
 
 
 /**
@@ -205,8 +209,10 @@ void simulation_fake_gps_fix(simulation_model_t* sim, uint32_t timestamp_ms);
  * \brief	Simulates sonar outputs
  *
  * \param	sim				The pointer to the simulation model structure
+ *
+ * \return	The result of the task execution
  */
-void simulation_simulate_sonar(simulation_model_t *sim);
+bool simulation_simulate_sonar(simulation_model_t *sim);
 
 
 /**

@@ -50,7 +50,6 @@ extern "C" {
 #include <stdbool.h>
 
 #include "libs/fat_fs/ff.h"
-#include "scheduler.h"
 #include "fat_fs_mounting.h"
 #include "state.h"
 #include "mavlink_stream.h"
@@ -149,7 +148,7 @@ bool data_logging_open_new_log_file(data_logging_t* data_logging);
  *
  * \return	The result of the task execution
  */
-task_return_t data_logging_update(data_logging_t* data_logging);
+bool data_logging_update(data_logging_t* data_logging);
 
 /**
  * \brief	Registers parameter to log on the SD card

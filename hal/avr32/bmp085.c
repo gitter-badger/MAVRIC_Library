@@ -179,8 +179,10 @@ void bmp085_reset_origin_altitude(barometer_t* bmp085, float origin_altitude)
 }
 
  
-void bmp085_update(barometer_t *bmp085) 
+bool bmp085_update(barometer_t *bmp085) 
 {
+	bool task_result = true;
+
 	float altitude, vertical_speed;
 	int32_t UT, UP, B3, B5, B6, X1, X2, X3, p;
 	uint32_t B4, B7;
@@ -303,4 +305,6 @@ void bmp085_update(barometer_t *bmp085)
 	}
 
 	bmp085->last_state_update = time_keeper_get_micros();
+
+	return task_result;
 }

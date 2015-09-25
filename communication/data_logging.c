@@ -576,7 +576,7 @@ bool data_logging_open_new_log_file(data_logging_t* data_logging)
 	return create_success;
 }
 
-task_return_t data_logging_update(data_logging_t* data_logging)
+bool data_logging_update(data_logging_t* data_logging)
 {
 	if (data_logging->fat_fs_mounting->log_data == 1)
 	{
@@ -685,7 +685,7 @@ task_return_t data_logging_update(data_logging_t* data_logging)
 			data_logging->file_init = false;
 		}
 	}//end of else (data_logging->fat_fs_mounting->log_data != 1)
-	return TASK_RUN_SUCCESS;
+	return true;
 }
 
 bool data_logging_add_parameter_uint8(data_logging_t* data_logging, uint8_t* val, const char* param_name)

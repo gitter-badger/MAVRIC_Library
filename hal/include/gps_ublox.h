@@ -1389,8 +1389,10 @@ void gps_ublox_configure_gps(gps_t *gps);
  * \brief	The function that needs to be called to get the GPS information
  *
  * \param	gps			The pointer to the GPS structure
+ *
+ * \return	The result of the task execution
  */
-void gps_ublox_update(gps_t *gps);
+bool gps_ublox_update(gps_t *gps);
 
 /**
  * \brief	Tranforming UTC to local time

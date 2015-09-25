@@ -397,15 +397,17 @@ void simulation_update(simulation_model_t *sim)
 	sim->local_position.heading = coord_conventions_get_yaw(sim->ahrs.qe);
 }
 
-void simulation_simulate_barometer(simulation_model_t *sim)
+bool simulation_simulate_barometer(simulation_model_t *sim)
 {
 	sim->pressure->altitude = sim->local_position.origin.altitude - sim->local_position.pos[Z];
 	sim->pressure->vario_vz = sim->vel[Z];
 	sim->pressure->last_update = time_keeper_get_millis();
 	sim->pressure->altitude_offset = 0;
+
+	return true;
 }
 	
-void simulation_simulate_gps(simulation_model_t *sim)
+bool simulation_simulate_gps(simulation_model_t *sim)
 {
 	global_position_t gpos = coord_conventions_local_to_global_position(sim->local_position);
 	
@@ -422,6 +424,8 @@ void simulation_simulate_gps(simulation_model_t *sim)
 
 	sim->gps->status = GPS_OK;
 	sim->gps->healthy = true;
+
+	return true;
 }
 
 void simulation_fake_gps_fix(simulation_model_t* sim, uint32_t timestamp_ms)
@@ -453,8 +457,10 @@ void simulation_fake_gps_fix(simulation_model_t* sim, uint32_t timestamp_ms)
 	sim->gps->healthy = true;
 }
 
-void simulation_simulate_sonar(simulation_model_t *sim)
+bool simulation_simulate_sonar(simulation_model_t *sim)
 {
+	bool task_result = true;
+
 	int16_t distance_cm = 0.5f - 100 * sim->local_position.pos[Z];
 	float distance_m = (float)distance_cm / 100.0f;
 	float dt = 0.0f;
@@ -481,6 +487,8 @@ void simulation_simulate_sonar(simulation_model_t *sim)
 		sim->sonar->healthy_vel = false;
 		sim->sonar->current_velocity = 0.0f;
 	}
+
+	return task_result;
 }
 
 void simulation_switch_from_reality_to_simulation(simulation_model_t *sim)

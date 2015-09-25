@@ -79,9 +79,9 @@ void epuck_communication_init(epuck_communication_t* epuck_communication, const 
  *
  * \param	epuck_communication			Pointer to the epuck_communication structure
  * 
- * \return Returns the result of the task
+ * \return	The result of the task execution
  */
-task_return_t epuck_communication_update(epuck_communication_t* epuck_communication);
+bool epuck_communication_update(epuck_communication_t* epuck_communication);
 
 
 #ifdef __cplusplus

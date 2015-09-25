@@ -159,9 +159,9 @@ void waypoint_handler_nav_plan_init(mavlink_waypoint_handler_t* waypoint_handler
  *
  * \param	waypoint_handler		The pointer to the waypoint handler structure
  *
- * \return	The task status
+ * \return	The result of the task execution
  */
-task_return_t waypoint_handler_control_time_out_waypoint_msg(mavlink_waypoint_handler_t* waypoint_handler);
+bool waypoint_handler_control_time_out_waypoint_msg(mavlink_waypoint_handler_t* waypoint_handler);
 
 /**
  * \brief	Set the waypoint depending on the reference frame defined in the current_waypoint structure

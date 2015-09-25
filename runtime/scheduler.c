@@ -193,7 +193,7 @@ int32_t scheduler_update(scheduler_t* scheduler)
 
 	task_function_t call_task;
 	task_argument_t function_argument;
-	task_return_t treturn;
+	bool treturn;
 
 	// Iterate through registered tasks
 	for (int32_t i = ts->current_schedule_slot; i < ts->task_count; i++) 

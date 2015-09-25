@@ -58,18 +58,6 @@ extern "C"
 
 typedef uint8_t task_handle_t;
 
-
-/**
- * \brief	Task return code
- */
-typedef enum 
-{
-	TASK_RUN_ERROR 	 = -1,		///< 	The task was not not successfully executed
-	TASK_RUN_BLOCKED = 0,     	///< 	If a task returns "TASK_RUN_BLOCKED", the scheduler will try to re-run at the next schedule update, and not update "next_run" 
-	TASK_RUN_SUCCESS = 1		///< 	The task was successfully executed 
-} task_return_t;
-
-
 /**
  * \brief	Generic argument to be passed to a task function
  */
@@ -79,7 +67,7 @@ typedef void* task_argument_t;
 /**
  * \brief 	Prototype of a task function
  */ 
-typedef task_return_t (*task_function_t)(task_argument_t);
+typedef bool (*task_function_t)(task_argument_t);
 
 
 /**

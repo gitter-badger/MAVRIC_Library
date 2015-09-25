@@ -60,7 +60,6 @@ extern "C" {
 #include "stabilisation_copter.h"
 #include "stabilisation.h"
 #include "mavlink_waypoint_handler.h"
-#include "tasks.h"
 
 
 #define STORE_SIZE			4		///< number of azimuth/elevation values stored for reliability test
@@ -127,9 +126,9 @@ void acoustic_init(	audio_t*			audio_data,
  * 
  * \param	audio_data	The pointer to the acoustic structure
  *
- * \return	TASK_RUN_SUCCESS
+ * \return	The result of the task execution
  */
-task_return_t acoustic_update(audio_t* audio_data);
+bool acoustic_update(audio_t* audio_data);
 
 
 /**

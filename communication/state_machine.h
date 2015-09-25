@@ -48,7 +48,6 @@
 extern "C" {
 #endif
 
-#include "scheduler.h"
 #include "state.h"
 #include "mavlink_waypoint_handler.h"
 #include "simulation.h"
@@ -93,9 +92,9 @@ bool state_machine_init(	state_machine_t *state_machine,
  *
  * \param	state_machine			Pointer to the state machine structure
  * 
- * \return Returns the result of the task
+ * \return	The result of the task execution
  */
-task_return_t state_machine_update(state_machine_t* state_machine);
+bool state_machine_update(state_machine_t* state_machine);
 
 
 #ifdef __cplusplus

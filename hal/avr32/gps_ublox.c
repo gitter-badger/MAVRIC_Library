@@ -3435,8 +3435,9 @@ void gps_ublox_configure_gps(gps_t *gps)
 }
 
 
-void gps_ublox_update(gps_t *gps)
+bool gps_ublox_update(gps_t *gps)
 {
+	bool task_result = true;
 	bool result;
 	uint32_t tnow;
 	
@@ -3537,6 +3538,8 @@ void gps_ublox_update(gps_t *gps)
 			gps->accuracy_status = 0;
 		}
 	}
+
+	return task_result;
 }
 
 void gps_ublox_utc_to_local(date_time_t *today_date, uint8_t time_zone)

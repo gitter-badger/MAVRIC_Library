@@ -48,7 +48,6 @@
 extern "C" {
 #endif
 
-#include "scheduler.h"
 #include "mavlink_stream.h"
 #include "mavlink_message_handler.h"
 #include "onboard_parameters.h"
@@ -138,9 +137,9 @@ bool mavlink_communication_init(mavlink_communication_t* mavlink_communication, 
  *
  * \param 	mavlink_communication 	Pointer to the MAVLink communication structure
  *
- * \return	Task status return
+ * \return	The result of the task execution
  */
-task_return_t mavlink_communication_update(mavlink_communication_t* mavlink_communication);
+bool mavlink_communication_update(mavlink_communication_t* mavlink_communication);
 
 
 /**
@@ -172,9 +171,9 @@ bool mavlink_communication_add_msg_send(	mavlink_communication_t* mavlink_commun
  *
  * \param 	msg_send 	The MAVLink message sending handler
  *
- * \return	The result of execution of the task
+ * \return	The result of the task execution
  */
-task_return_t mavlink_communication_send_message(mavlink_send_msg_handler_t* msg_send);
+bool mavlink_communication_send_message(mavlink_send_msg_handler_t* msg_send);
 
 #ifdef __cplusplus
 }
