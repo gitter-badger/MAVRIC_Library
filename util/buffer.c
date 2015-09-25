@@ -163,11 +163,20 @@ void buffer_make_buffered_stream(buffer_t *buffer, byte_stream_t *stream)
 }
 
 
-void buffer_make_buffered_stream_lossy(buffer_t *buffer, byte_stream_t *stream) 
+bool buffer_make_buffered_stream_lossy(buffer_t *buffer, byte_stream_t *stream) 
 {
+	bool init_success = true;
+
+	if ( (buffer == NULL)||(stream == NULL) )
+	{
+		init_success = false;
+	}
+
 	stream->get = (uint8_t(*)(stream_data_t*)) &buffer_get;
 	stream->put = (uint8_t(*)(stream_data_t*, uint8_t)) &buffer_put_lossy;
 	stream->flush = NULL;
 	stream->data = buffer;
 	stream->bytes_available = (uint32_t(*)(stream_data_t*)) &buffer_bytes_available;
+
+	return init_success;
 }
