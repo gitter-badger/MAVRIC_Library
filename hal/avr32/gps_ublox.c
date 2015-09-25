@@ -666,7 +666,7 @@ static ubx_ack_t * ubx_get_ack(void);
 
 static void gps_ublox_reset(gps_t *gps, gps_engine_setting_t engine_nav_setting)
 {
-	gps_ublox_configure_gps(gps);
+	//gps_ublox_configure_gps(gps);
 	
 	gps->next_fix = false;
 	gps->have_raw_velocity = false;
@@ -2703,14 +2703,16 @@ static ubx_ack_t * ubx_get_ack()
 // PUBLIC FUNCTIONS IMPLEMENTATION
 //------------------------------------------------------------------------------
 
-void gps_ublox_init(gps_t *gps, int32_t UID, usart_config_t usart_conf_gps)
+bool gps_ublox_init(gps_t *gps, int32_t UID, usart_config_t usart_conf_gps)
 {
+	bool init_success = true;
+
 	uart_int_set_usart_conf(UID, &usart_conf_gps);
 	
-	uart_int_init(UID);
-	buffer_make_buffered_stream(&(gps->gps_buffer), &(gps->gps_stream_in));
-	uart_int_register_read_stream(uart_int_get_uart_handle(UID), &(gps->gps_stream_in));
-	uart_int_register_write_stream(uart_int_get_uart_handle(UID), &(gps->gps_stream_out));
+	init_success &= uart_int_init(UID);
+	init_success &= buffer_make_buffered_stream(&(gps->gps_buffer), &(gps->gps_stream_in));
+	init_success &= uart_int_register_read_stream(uart_int_get_uart_handle(UID), &(gps->gps_stream_in));
+	init_success &= uart_int_register_write_stream(uart_int_get_uart_handle(UID), &(gps->gps_stream_out));
 
 	gps->disable_counter = 1;
 
@@ -2761,6 +2763,8 @@ void gps_ublox_init(gps_t *gps, int32_t UID, usart_config_t usart_conf_gps)
 	gps->configure_gps = false;
 	gps->config_nav_msg_count = 0;
 	gps->acknowledged_received = true;
+
+	return init_success;
 }
 
 
@@ -3458,7 +3462,7 @@ bool gps_ublox_update(gps_t *gps)
 			
 			gps->healthy = false;
 
-			//gps_ublox_reset(gps, GPS_ENGINE_AIRBORNE_4G);
+			gps_ublox_reset(gps, GPS_ENGINE_AIRBORNE_4G);
 			gps->idle_timer = tnow;
 		}
 	}
