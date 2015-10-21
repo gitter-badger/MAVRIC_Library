@@ -1,0 +1,109 @@
+# Include folders for Library
+MAVLIB_INC += /
+MAVLIB_INC += /libs/mavlink/include/common/
+MAVLIB_INC += /libs/mavlink/include/mavric/
+MAVLIB_INC += /libs/fats/
+MAVLIB_INC += /libs/
+MAVLIB_INC += /util/
+MAVLIB_INC += /hal/include
+MAVLIB_INC += /hal/avr32/include
+MAVLIB_INC += /control/
+MAVLIB_INC += /sensing/
+MAVLIB_INC += /runtime/
+MAVLIB_INC += /communication/
+
+
+# Library source files (*.c and *.cpp)
+LIB_SRCS += util/buffer.c
+LIB_SRCS += util/coord_conventions.c
+LIB_SRCS += util/kalman.c
+LIB_SRCS += util/linear_algebra.c
+LIB_SRCS += util/print_util.c
+LIB_SRCS += util/quick_trig.c
+
+LIB_SRCS += hal/avr32/adc_int.c                   
+LIB_SRCS += hal/avr32/ads1274.c                   
+LIB_SRCS += hal/avr32/adxl345_driver.c                   
+LIB_SRCS += hal/avr32/airspeed_analog.c           
+LIB_SRCS += hal/avr32/analog_monitor.c            
+LIB_SRCS += hal/avr32/analog_monitor_telemetry.c  
+LIB_SRCS += hal/avr32/battery.c                    
+LIB_SRCS += hal/avr32/bmp085.c                    
+LIB_SRCS += hal/avr32/bmp085_telemetry.c          
+LIB_SRCS += hal/avr32/curvace.c                   
+LIB_SRCS += hal/avr32/dac_dma.c                   
+LIB_SRCS += hal/avr32/fat_fs_mounting.c
+LIB_SRCS += hal/avr32/fat_fs_mounting_telemetry.c
+LIB_SRCS += hal/avr32/gps_ublox.c                 
+LIB_SRCS += hal/avr32/gps_ublox_telemetry.c       
+LIB_SRCS += hal/avr32/hmc5883l.c             
+LIB_SRCS += hal/avr32/i2c_driver_int.c       
+LIB_SRCS += hal/avr32/itg3200.c              
+LIB_SRCS += hal/avr32/led.c                  
+LIB_SRCS += hal/avr32/lsm330dlc.c            
+LIB_SRCS += hal/avr32/piezo_speaker.c        
+LIB_SRCS += hal/avr32/pwm_servos.c           
+LIB_SRCS += hal/avr32/radar_driver.c         
+LIB_SRCS += hal/avr32/radar_module_driver.c
+LIB_SRCS += hal/avr32/sd_spi.c
+LIB_SRCS += hal/avr32/servos.c                              
+LIB_SRCS += hal/avr32/servos_telemetry.c
+LIB_SRCS += hal/avr32/sonar_i2cxl.c
+LIB_SRCS += hal/avr32/sonar_telemetry.c
+LIB_SRCS += hal/avr32/spektrum_satellite.c
+LIB_SRCS += hal/avr32/spi_buffered.c
+LIB_SRCS += hal/avr32/time_keeper.c
+LIB_SRCS += hal/avr32/uart_int.c
+LIB_SRCS += hal/avr32/usb_int.c
+LIB_SRCS += hal/avr32/xbee.c
+
+LIB_SRCS += control/adaptive_parameter.c          
+LIB_SRCS += control/attitude_controller.c         
+LIB_SRCS += control/attitude_controller_p2.c      
+LIB_SRCS += control/attitude_error_estimator.c    
+LIB_SRCS += control/joystick_parsing.c            
+LIB_SRCS += control/joystick_parsing_telemetry.c  
+LIB_SRCS += control/navigation.c                   
+LIB_SRCS += control/pid_controller.c               
+LIB_SRCS += control/servos_mix_quadcopter_cross.c  
+LIB_SRCS += control/servos_mix_quadcopter_diag.c   
+LIB_SRCS += control/stabilisation.c
+LIB_SRCS += control/stabilisation_copter.c
+LIB_SRCS += control/stabilisation_telemetry.c
+LIB_SRCS += control/vector_field_waypoint.c
+LIB_SRCS += control/velocity_controller_copter.c
+
+LIB_SRCS += sensing/ahrs.c            
+LIB_SRCS += sensing/ahrs_telemetry.c  
+LIB_SRCS += sensing/imu.c             
+LIB_SRCS += sensing/imu_telemetry.c                  
+LIB_SRCS += sensing/position_estimation.c            
+LIB_SRCS += sensing/position_estimation_telemetry.c
+LIB_SRCS += sensing/qfilter.c
+LIB_SRCS += sensing/simulation.c
+LIB_SRCS += sensing/simulation_telemetry.c   
+
+LIB_SRCS += runtime/scheduler.c  
+LIB_SRCS += runtime/scheduler_telemetry.c
+
+LIB_SRCS += communication/acoustic.c                      
+LIB_SRCS += communication/acoustic_telemetry.c      
+LIB_SRCS += communication/console.c                 
+LIB_SRCS += communication/data_logging.c            
+LIB_SRCS += communication/hud_telemetry.c           
+LIB_SRCS += communication/mavlink_communication.c     
+LIB_SRCS += communication/mavlink_message_handler.c   
+LIB_SRCS += communication/mavlink_stream.c            
+LIB_SRCS += communication/mavlink_waypoint_handler.c  
+LIB_SRCS += communication/onboard_parameters.c
+LIB_SRCS += communication/remote.c
+LIB_SRCS += communication/remote_telemetry.c
+LIB_SRCS += communication/state.c
+LIB_SRCS += communication/state_machine.c
+LIB_SRCS += communication/state_telemetry.c
+
+LIB_SRCS += libs/fat_fs/diskio.c  
+LIB_SRCS += libs/fat_fs/ff.c  
+LIB_SRCS += libs/fat_fs/option/ccsbcs.c
+LIB_SRCS += libs/fat_fs/option/syscall.c
+LIB_SRCS += libs/fat_fs/option/unicode.c
